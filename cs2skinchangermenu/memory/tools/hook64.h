@@ -4,11 +4,9 @@
 
 #define MAX_ORIG_INSTRUCTIONS 40
 #define MAX_STACK_PRESERVE 64*8 // 16 QWORDS, MAKE SURE THIS IS 16 BYTE ALIGNED
-#define MAX_GATEWAY_SIZE_BYTES 512
+#define MAX_GATEWAY_SIZE_BYTES 512 // +16 will be used, 0-7 used to store the original return addy and 8-15 to store the page current use count flag
 
 extern BYTE absJmpNoRegister[];
-extern BYTE absCall[];
-extern BYTE stackPreserveAsm[];
 extern BYTE destPrepPrologue[];
 extern BYTE destEpilogue[];
 extern BYTE pushAllRegs[];
@@ -17,28 +15,18 @@ extern BYTE popAllRegs[];
 
 class Hook {
 public:
-	BYTE preservedStack[MAX_STACK_PRESERVE];
-	bool stackManuallyAligned;
-
-	Hook(BYTE* stackPreservationJmp, BYTE* stackPreserveLoc, BYTE* hookStartJmp, BYTE* hookGatewayLoc, BYTE hookTargetStartOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int actualStartOpcodesInUse, BYTE hookTargetMidFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int actualOpcodesInUse);
+	Hook(BYTE* gatewayStart, BYTE* targetLoc, BYTE targetFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int numOriginalOpcodes);
 	~Hook();
 
-	void SetHookGatewayLoc(BYTE* newGatewayLoc);
 	void Enable();
 	void Disable();
 	bool Delete();
 
 private:
-	BYTE* stackPreservationJmp; // TARGET FUNC location where the stack preservation jmp is put
-	BYTE targetFuncStackPreserveOriginalOpcodes[MAX_ORIG_INSTRUCTIONS];
-	int numStackPreserveOriginalOpcodes;
-	BYTE* stackPreserveLoc;
-
-	BYTE* hookStartJmp; // TARGET FUNC location where the gateway jmp is placed
-	BYTE* hookGatewayLoc; // gateway location
-	BYTE hookTargetMidFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS];
-	int actualOpcodesInUse; // necessary so we can actually execute the original target func's opcodes that were replaced by hooking
+	BYTE* gatewayStart;
+	BYTE* targetLoc;
+	BYTE targetFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS];
+	int numOriginalOpcodes;
 };
 
-std::unique_ptr<Hook> CreateHook64Standalone(BYTE* targetFunc, BYTE* destinationFunc, int desiredOffsetFromStart);
-std::unique_ptr<Hook> CreateHook64Attached(BYTE* targetFunc, BYTE* destinationFunc, int desiredOffsetFromStart);
+std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destinationFunc);

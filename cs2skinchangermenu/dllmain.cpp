@@ -111,12 +111,11 @@ DWORD WINAPI Main(HMODULE hModule) {
     //std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
 
-    std::unique_ptr<Hook> memAllocHook = CreateHook64Standalone(
+    std::unique_ptr<Hook> memAllocHook = CreateTrampHook64_Advanced(
         reinterpret_cast<BYTE*>(GetProcAddress(GetModuleHandle("tier0.dll"), "UtlMemory_Alloc")),
-        reinterpret_cast<BYTE*>(&HookTestFn),
-        0
+        reinterpret_cast<BYTE*>(&HookTestFn)
     );
-    //Sleep(8000);
+    Sleep(8000);
     memAllocHook.get()->Enable();
 
     /*InitGUI();

@@ -26,10 +26,9 @@ void __stdcall HookPresent(IDXGISwapChain* chain, UINT SyncInterval, UINT Flags)
 //
 /////////////////////////
 bool InitializeHooks() {
-    hooks::scPresentHook = CreateHook64Standalone(
+    hooks::scPresentHook = CreateTrampHook64_Advanced(
         reinterpret_cast<BYTE*>(VirtualFunction(swap_chain, 5)),
-        reinterpret_cast<BYTE*>(&HookPresent),
-        0
+        reinterpret_cast<BYTE*>(&HookPresent)
     );
 
     return hooks::scPresentHook.get();
