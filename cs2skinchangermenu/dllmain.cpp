@@ -63,13 +63,8 @@ std::unordered_map<std::string, std::string> ReadEnglishTranslation() {
     return tokens.GetProperties();
 }
 
-void HookTestFn(uint64_t a, uint64_t b, uint64_t c, uint64_t d) {
-    std::cout << std::hex << a << " " << b << " " << c << " " << d << std::dec << std::endl;
-}
-
-int SomeRandomFunc(void* ptr1, void* ptr2) {
-    printf("%d", ptr1);
-    return 15;
+void HookTestFn() {
+    return;
 }
 
 // Map out all released paintkits for each weapon

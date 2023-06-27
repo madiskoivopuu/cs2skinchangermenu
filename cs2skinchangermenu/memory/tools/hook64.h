@@ -3,8 +3,11 @@
 #include <memory>
 
 #define MAX_ORIG_INSTRUCTIONS 40
-#define MAX_STACK_PRESERVE 64*8 // 16 QWORDS, MAKE SURE THIS IS 16 BYTE ALIGNED
-#define MAX_GATEWAY_SIZE_BYTES 512 // +16 will be used, 0-7 used to store the original return addy and 8-15 to store the page current use count flag
+#define MAX_GATEWAY_SIZE_BYTES 512
+#define OFFSET_ORIGINAL_RET_ADDRESS 0
+#define OFFSET_PAGE_ACCESSORS 8
+#define OFFSET_RAX_ORIGINAL 16
+#define NUM_PRESERVED_REGS 15
 
 extern BYTE absJmpNoRegister[];
 extern BYTE destPrepPrologue[];

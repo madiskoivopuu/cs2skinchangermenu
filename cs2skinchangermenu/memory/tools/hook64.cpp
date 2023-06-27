@@ -14,32 +14,98 @@ BYTE absJmpNoRegister[] = {
 
 BYTE destPrepPrologue[] = {
 	// add 1 to our page access
-	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES+8], 1 <- since the rip already points to the next instruction, which is exactly 8 bytes away, we will not need to add 8 when actually formatting offset
+	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x01, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES], 1 <- since the rip already points to the next instruction, which is exactly 8 bytes away, we will not need to add 8 when actually formatting offset
 	// store original return address
-	0x48, 0x8B, 0x04, 0x24, // mov rax, [rsp]
-	0x48, 0xA3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // movabs 0x0000000000000000, rax
+	0x50, // push rax
+	0x48, 0x8B, 0x44, 0x24, 0x08, // mov rax, [rsp+8]
+	0x48, 0xA3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov [0x0000000000000000], rax
 	// overwrite return address
 	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, gateway+(whatever offset is after our jmp to destination)
-	0x48, 0x89, 0x04, 0x24 // mov [rsp], rax
+	0x48, 0x89, 0x44, 0x24, 0x08, // mov [rsp+8], rax
+	// start preserving registers in memory (except rax and rsp)
+	0x58, // pop rax
+	0x48, 0xA3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov [0x0000000000000000], rax
+	0x50, // push rax
+	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, 0x0000000000000000 + OFFSET_RAX_ORIGINAL + 8
+	0x48, 0x89, 0x18, // mov [rax], rbx
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x89, 0x08, // mov [rax], rcx
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x89, 0x10, // mov [rax], rdx
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x89, 0x30, // mov [rax], rsi
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x89, 0x38, // mov [rax], rdi
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x89, 0x28, // mov [rax], rbp
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x00, // mov [rax], r8
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x08, // mov [rax], r9
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x10, // mov [rax], r10
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x18, // mov [rax], r11
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x20, // mov [rax], r12
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x28, // mov [rax], r13
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x30, // mov [rax], r14
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x89, 0x38, // mov [rax], r15
+	0x58, // pop rax
 };
 
 BYTE destEpilogue[] = {
 	// restore original return address
 	0x48, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, gateway+MAX_GATEWAY_SIZE_BYTES
 	0x50, // push rax
+	// start restoring our original registers
+	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, 0x000000000000000000 + OFFSET_RAX_ORIGINAL + 8
+	0x48, 0x8B, 0x18, // mov rbx, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x8B, 0x08, // mov rcx, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x8B, 0x10, // mov rdx, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x8B, 0x30, // mov rsi, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x8B, 0x38, // mov rdi, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x48, 0x8B, 0x28, // mov rbp, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x00, // mov r8, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x08, // mov r9, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x10, // mov r10, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x18, // mov r11, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x20, // mov r12, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x28, // mov r13, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x30, // mov r14, [rax]
+	0x48, 0x83, 0xC0, 0x08, // add rax, 8
+	0x4C, 0x8B, 0x38, // mov r15, [rax]
+	0x48, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, [0x0000000000000000]
+	0x50, // push rax
 	// subtract 1 from page access, here we use absolute address since it's a bit easier
-	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // movabs rax, gateway+MAX_GATEWAY_SIZE_BYTES+8
-	0x48, 0x83, 0x28, 0x01 // sub qword ptr [rax], 1
+	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, gateway + MAX_GATEWAY_SIZE_BYTES + OFFSET_PAGE_ACCESSORS
+	0x48, 0x83, 0x28, 0x01, // sub qword ptr [rax], 1
+	0x58, // pop rax
 };
 
-// push rax
+// --push rax
 // push rbx
 // push rcx
 // push rdx
 // push rsi
 // push rdi
 // push rbp
-// push rsp
+// --push rsp
 // push r8
 // push r9
 // push r10
@@ -49,7 +115,7 @@ BYTE destEpilogue[] = {
 // push r14
 // push r15
 BYTE pushAllRegs[] = { 
-	0x50, 
+//	0x50, 
 	0x53, 
 	0x51, 
 	0x52, 
@@ -70,7 +136,7 @@ BYTE pushAllRegs[] = {
 // pop r15
 // pop r14
 // ...
-// pop rax
+// pop rbx
 BYTE popAllRegs[] = {
 	0x41, 0x5F,
 	0x41, 0x5E,
@@ -87,7 +153,7 @@ BYTE popAllRegs[] = {
 	0x5A,
 	0x59,
 	0x5B,
-	0x58
+//	0x58
 };
 
 /*
@@ -99,8 +165,11 @@ void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
 	memcpy(opcodeStorage, destPrepPrologue, sizeof(destPrepPrologue));
 
 	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 14) = gateway + MAX_GATEWAY_SIZE_BYTES;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 24) = gateway + sizeof(destPrepPrologue) + sizeof(absJmpNoRegister); // we want to return to the location after our destination jmp
+	*reinterpret_cast<BYTE**>(opcodeStorage + 16) = gateway + MAX_GATEWAY_SIZE_BYTES;
+	*reinterpret_cast<BYTE**>(opcodeStorage + 26) = gateway + sizeof(destPrepPrologue) + sizeof(absJmpNoRegister); // we want to return to the location after our destination jmp
+
+	*reinterpret_cast<BYTE**>(opcodeStorage + 42) = gateway + MAX_GATEWAY_SIZE_BYTES + OFFSET_RAX_ORIGINAL;
+	*reinterpret_cast<BYTE**>(opcodeStorage + 53) = gateway + MAX_GATEWAY_SIZE_BYTES + OFFSET_RAX_ORIGINAL + 8;
 }
 
 /*
@@ -111,8 +180,11 @@ void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
 void FormatDestinationEpilogue(BYTE* opcodeStorage, BYTE* gateway) {
 	memcpy(opcodeStorage, destEpilogue, sizeof(destEpilogue));
 
-	*reinterpret_cast<BYTE**>(opcodeStorage + 2) = gateway+MAX_GATEWAY_SIZE_BYTES;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 13) = gateway+MAX_GATEWAY_SIZE_BYTES+8; // set up the offset from rip to our page access qword
+	*reinterpret_cast<BYTE**>(opcodeStorage + 2) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_ORIGINAL_RET_ADDRESS;
+	*reinterpret_cast<BYTE**>(opcodeStorage + 13) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_RAX_ORIGINAL+8;
+
+	*reinterpret_cast<BYTE**>(opcodeStorage + 117) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_RAX_ORIGINAL;
+	*reinterpret_cast<BYTE**>(opcodeStorage + 128) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_PAGE_ACCESSORS;
 }
 
 /*
@@ -152,6 +224,7 @@ int FindMinValidInstructionsSize(BYTE* targetFunc) {
 		hde64s hdeState = { 0 };
 		int size = hde64_disasm(targetFunc, &hdeState);
 		currentOffset += size;
+		targetFunc += size;
 
 		if (hdeState.flags & F_ERROR)
 			return -1;
@@ -187,7 +260,10 @@ std::tuple<BYTE*, BYTE*> GetHookStartAndEndAddress(BYTE* targetFunc, int aligned
 
 // Creates a detached trampoline hook at the start of our target function to our destination function without extra coding needed.
 // Hooking this way will make you unable to modify the return value of the target function. Destination function gets executed before target function.
+// GATEWAY MEMORY: after the max gateway size bytes, 0-7 is reserved for return address, 8-15 is reserved for page accessor count and 16-... is reserved for the stack
 std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destinationFunc) {
+	static_assert(sizeof(destPrepPrologue)+sizeof(absJmpNoRegister)+sizeof(destEpilogue)+MAX_ORIG_INSTRUCTIONS+sizeof(absJmpNoRegister) <= MAX_GATEWAY_SIZE_BYTES);
+
 	int targetFuncBytes = FindMinValidInstructionsSize(targetFunc);
 	if (targetFuncBytes == -1)
 		return nullptr;
@@ -197,7 +273,7 @@ std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destina
 	BYTE targetFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS];
 	memcpy(targetFuncOriginalOpcodes, targetFunc, targetFuncBytes);
 
-	BYTE* gateway = static_cast<BYTE*>(VirtualAlloc(targetFunc, MAX_GATEWAY_SIZE_BYTES + 16, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE));
+	BYTE* gateway = static_cast<BYTE*>(VirtualAlloc(0, MAX_GATEWAY_SIZE_BYTES+NUM_PRESERVED_REGS*8+128, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE));
 	if (!gateway)
 		return nullptr;
 
@@ -239,7 +315,7 @@ std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destina
 
 // Hook class code
 Hook::Hook(BYTE* gatewayStart, BYTE* targetLoc, BYTE targetFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int numOriginalOpcodes) {
-	this->gatewayStart;
+	this->gatewayStart = gatewayStart;
 	this->targetLoc = targetLoc;
 	memcpy(this->targetFuncOriginalOpcodes, targetFuncOriginalOpcodes, numOriginalOpcodes);
 	this->numOriginalOpcodes = numOriginalOpcodes;
