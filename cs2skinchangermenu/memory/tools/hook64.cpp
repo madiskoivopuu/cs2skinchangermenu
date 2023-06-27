@@ -6,185 +6,147 @@
 #include <cmath>
 #include <memory>
 
+static_assert(sizeof(destPrepPrologue) + sizeof(absCall) + sizeof(destEpilogue) + MAX_ORIG_INSTRUCTIONS + sizeof(hookPageLeave) + sizeof(absJmpNoRegister) <= MAX_GATEWAY_SIZE_BYTES, "increase gateway size");
+static_assert(MAX_GATEWAY_SIZE_BYTES <= INT32_MAX, "gateway size too large");
+static_assert(OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <= INT32_MAX, "stack original return address storage offset too large, you will point out of stack");
+
 BYTE absJmpNoRegister[] = {
 	0xFF, 0x25, 0x00, 0x00, 0x00, 0x00, // jmp [rip] 
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 // 0x???????? <- rip already points here, thus an absolute jump will still occur correctly
 };
 
+// simulates a call instruction
+BYTE absCall[] = {
+	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, 0x00 00 00 00 00 00 00 00 
+	0xFF, 0xD0 // call rax
+};
 
 BYTE destPrepPrologue[] = {
-	// add 1 to our page access
-	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x01, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES], 1 <- since the rip already points to the next instruction, which is exactly 8 bytes away, we will not need to add 8 when actually formatting offset
-	// store original return address
+	// add 1 to our gateway page accessor count
+	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8], 1 <- rip will point to next instruction 8 bytes away, adding MAX_GATEWAY_SIZE_BYTES will make it not aligned correctly at the gateway size addy
+
+	// start storing registers and original return address somewhere up on our stack
+	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
+	0xFF, 0xB4, 0x24, 0x00, 0x00, 0x00, 0x00, // push qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK]
 	0x50, // push rax
-	0x48, 0x8B, 0x44, 0x24, 0x08, // mov rax, [rsp+8]
-	0x48, 0xA3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov [0x0000000000000000], rax
-	// overwrite return address
-	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, gateway+(whatever offset is after our jmp to destination)
-	0x48, 0x89, 0x44, 0x24, 0x08, // mov [rsp+8], rax
-	// start preserving registers in memory (except rax and rsp)
-	0x58, // pop rax
-	0x48, 0xA3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov [0x0000000000000000], rax
-	0x50, // push rax
-	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, 0x0000000000000000 + OFFSET_RAX_ORIGINAL + 8
-	0x48, 0x89, 0x18, // mov [rax], rbx
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x89, 0x08, // mov [rax], rcx
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x89, 0x10, // mov [rax], rdx
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x89, 0x30, // mov [rax], rsi
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x89, 0x38, // mov [rax], rdi
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x89, 0x28, // mov [rax], rbp
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x00, // mov [rax], r8
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x08, // mov [rax], r9
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x10, // mov [rax], r10
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x18, // mov [rax], r11
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x20, // mov [rax], r12
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x28, // mov [rax], r13
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x30, // mov [rax], r14
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x89, 0x38, // mov [rax], r15
-	0x58, // pop rax
+	0x53, // push rbx
+	0x51, // push rcx
+	0x52, // push rdx
+	0x56, // push rsi
+	0x57, // push rdi
+	0x55, // push rbp
+	0x41, 0x50, // push r8
+	0x41, 0x51, // push r9
+	0x41, 0x52, // push r10
+	0x41, 0x53, // push r11
+	0x41, 0x54, // push r12
+	0x41, 0x55, // push r13
+	0x41, 0x56, // push r14
+	0x41, 0x57, // push r15
+	0x48, 0x81, 0xC4, 0x00, 0x00, 0x00, 0x00 // add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 + 8 <- int, +8 since we want to overwrite the original return address
 };
 
 BYTE destEpilogue[] = {
-	// restore original return address
-	0x48, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, gateway+MAX_GATEWAY_SIZE_BYTES
-	0x50, // push rax
-	// start restoring our original registers
-	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, 0x000000000000000000 + OFFSET_RAX_ORIGINAL + 8
-	0x48, 0x8B, 0x18, // mov rbx, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x8B, 0x08, // mov rcx, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x8B, 0x10, // mov rdx, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x8B, 0x30, // mov rsi, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x8B, 0x38, // mov rdi, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x48, 0x8B, 0x28, // mov rbp, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x00, // mov r8, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x08, // mov r9, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x10, // mov r10, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x18, // mov r11, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x20, // mov r12, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x28, // mov r13, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x30, // mov r14, [rax]
-	0x48, 0x83, 0xC0, 0x08, // add rax, 8
-	0x4C, 0x8B, 0x38, // mov r15, [rax]
-	0x48, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, [0x0000000000000000]
-	0x50, // push rax
-	// subtract 1 from page access, here we use absolute address since it's a bit easier
-	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, gateway + MAX_GATEWAY_SIZE_BYTES + OFFSET_PAGE_ACCESSORS
-	0x48, 0x83, 0x28, 0x01, // sub qword ptr [rax], 1
+	// rsp will be higher by 8 bytes now due to ret, so we will compensate for it
+
+	// restore the original ret addr
+	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, 8 + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
+	0x48, 0x8B, 0x04, 0x24, // mov rax, [rsp]
+	0x48, 0x89, 0xA4, 0x24, 0x00, 0x00, 0x00, 0x00, // mov qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK], rax
+	// restore registers
+	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, NUM_STORED_REGISTERS*8 <- int
+	0x41, 0x5F, // pop r15
+	0x41, 0x5E, // pop r14
+	0x41, 0x5D, // pop r13
+	0x41, 0x5C, // pop r12
+	0x41, 0x5B, // pop r11
+	0x41, 0x5A, // pop r10
+	0x41, 0x59, // pop r9
+	0x41, 0x58, // pop r8
+	0x5D, // pop rbp
+	0x5F, // pop rdi
+	0x5E, // pop rsi
+	0x5A, // pop rdx
+	0x59, // pop rcx
+	0x5B, // pop rbx
 	0x58, // pop rax
+
+	// put stack pointer to the original return address
+	0x48, 0x81, 0xC4, 0x00, 0x00, 0x00, 0x10 // add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK
 };
 
-// --push rax
-// push rbx
-// push rcx
-// push rdx
-// push rsi
-// push rdi
-// push rbp
-// --push rsp
-// push r8
-// push r9
-// push r10
-// push r11
-// push r12
-// push r13
-// push r14
-// push r15
-BYTE pushAllRegs[] = { 
-//	0x50, 
-	0x53, 
-	0x51, 
-	0x52, 
-	0x56, 
-	0x57, 
-	0x55, 
-//	0x54, 
-	0x41, 0x50, 
-	0x41, 0x51, 
-	0x41, 0x52, 
-	0x41, 0x53, 
-	0x41, 0x54, 
-	0x41, 0x55, 
-	0x41, 0x56, 
-	0x41, 0x57 
+BYTE hookPageLeave[] = {
+	0x48, 0x83, 0x2D, 0x00, 0x00, 0x00, 0x00, 0x01 // sub qword ptr [rip + (offset to gateway page accessor count)], 1
 };
 
-// pop r15
-// pop r14
-// ...
-// pop rbx
-BYTE popAllRegs[] = {
-	0x41, 0x5F,
-	0x41, 0x5E,
-	0x41, 0x5D,
-	0x41, 0x5C,
-	0x41, 0x5B,
-	0x41, 0x5A,
-	0x41, 0x59,
-	0x41, 0x58,
-//	0x5C,
-	0x5D,
-	0x5F,
-	0x5E,
-	0x5A,
-	0x59,
-	0x5B,
-//	0x58
-};
+Hook::Hook(BYTE* targetJmpPlacementLoc, BYTE* hookGatewayLoc, BYTE targetOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int numOriginalOpcodes) {
+	this->targetJmpPlacementLoc = targetJmpPlacementLoc;
+	this->hookGatewayLoc = hookGatewayLoc;
 
-/*
-* Formats the destination preparation prologue to save our original return address on the stack to somewhere else and replace it with our gateway.
-* @param opcodeStorage Location to store the formatted instructions at
-* @param gateway Pointer to the start of our gateway.
-*/
-void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
-	memcpy(opcodeStorage, destPrepPrologue, sizeof(destPrepPrologue));
+	// target original opcodes
+	memcpy(targetOriginalOpcodes, targetOriginalOpcodes, numOriginalOpcodes);
+	this->numOriginalOpcodes = numOriginalOpcodes;
+}
 
-	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 16) = gateway + MAX_GATEWAY_SIZE_BYTES;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 26) = gateway + sizeof(destPrepPrologue) + sizeof(absJmpNoRegister); // we want to return to the location after our destination jmp
+Hook::~Hook() {
+	this->Delete();
+}
 
-	*reinterpret_cast<BYTE**>(opcodeStorage + 42) = gateway + MAX_GATEWAY_SIZE_BYTES + OFFSET_RAX_ORIGINAL;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 53) = gateway + MAX_GATEWAY_SIZE_BYTES + OFFSET_RAX_ORIGINAL + 8;
+// TODO:
+void Hook::Enable() {
+	DWORD oldProtect;
+	VirtualProtect(this->targetJmpPlacementLoc, this->numOriginalOpcodes, PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(this->targetJmpPlacementLoc, absJmpNoRegister, sizeof(absJmpNoRegister));
+	// write jmp address
+	*reinterpret_cast<BYTE**>(this->targetJmpPlacementLoc + 6) = this->hookGatewayLoc;
+	VirtualProtect(this->targetJmpPlacementLoc, this->numOriginalOpcodes, oldProtect, &oldProtect);
+}
+
+// TODO:
+void Hook::Disable() {
+	DWORD oldProtect;
+	VirtualProtect(this->targetJmpPlacementLoc, this->numOriginalOpcodes, PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(this->targetJmpPlacementLoc, this->hookTargetMidFuncOriginalOpcodes, this->numOriginalOpcodes);
+	VirtualProtect(this->targetJmpPlacementLoc, this->numOriginalOpcodes, oldProtect, nullptr);
+}
+
+bool Hook::Delete() {
+	this->Disable();
+
+	return VirtualFree(this->hookGatewayLoc, 0, MEM_RELEASE);
 }
 
 /*
-* Formats the destination call epilogue instructions that restore the original return address & decrease the page access value by 1.
+* Formats the destination call prologue instructions to reset the manual stack alignment bool and if needed, restore the stack to is previous non 16-byte alignment.
 * @param opcodeStorage Location to store the formatted instructions at
-* @param gateway Pointer to the start of our gateway.
+* @param manualAlignment Pointer to bool which shows whether we altered the stack such that it would be 16-byte aligned.
 */
-void FormatDestinationEpilogue(BYTE* opcodeStorage, BYTE* gateway) {
+void FormatDestinationPrologue(BYTE* opcodeStorage) {
+	memcpy(opcodeStorage, destPrepPrologue, sizeof(destPrepPrologue));
+
+	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES - 8; // RIP offset | add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8]
+
+	*reinterpret_cast<int*>(opcodeStorage + 11) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset |  sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
+	*reinterpret_cast<int*>(opcodeStorage + 18) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset to original ret addr | sub rsp, NUM_STORED_REGISTERS*8 <- int
+
+	*reinterpret_cast<int*>(opcodeStorage + 48) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8 + 8; // RSP point stack to original loc | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 + 8 <- int
+}
+
+/*
+* Formats the destination call epilogue instructions needed to align the stack and copy the original contents of it, so that our destination function doesn't overwrite something important.
+* @param opcodeStorage Location to store the formatted instructions at
+* @param stackPreservationLoc Pointer to the location where the stack has been stored at
+* @param manualAlignment Pointer to bool which shows whether we altered the stack such that it would be 16-byte aligned.
+*/
+void FormatDestinationEpilogue(BYTE* opcodeStorage) {
 	memcpy(opcodeStorage, destEpilogue, sizeof(destEpilogue));
 
-	*reinterpret_cast<BYTE**>(opcodeStorage + 2) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_ORIGINAL_RET_ADDRESS;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 13) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_RAX_ORIGINAL+8;
+	*reinterpret_cast<int*>(opcodeStorage + 3) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + 8; // RSP offset to top of stack for our stored original ret addr | sub rsp, 8 + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
+	*reinterpret_cast<int*>(opcodeStorage + 15) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset to the original/modified return address | mov qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK], rax
 
-	*reinterpret_cast<BYTE**>(opcodeStorage + 117) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_RAX_ORIGINAL;
-	*reinterpret_cast<BYTE**>(opcodeStorage + 128) = gateway+MAX_GATEWAY_SIZE_BYTES+OFFSET_PAGE_ACCESSORS;
+	*reinterpret_cast<int*>(opcodeStorage + 22) = NUM_STORED_REGISTERS * 8; // RSP offset to our preserved regs | mov qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK], rax
+	*reinterpret_cast<int*>(opcodeStorage + 52) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP point stack to original retaddr loc | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 + 8 <- int
+
 }
 
 /*
@@ -196,6 +158,29 @@ void FormatAbsoluteJmpCode(BYTE* opcodeStorage, BYTE* desiredJmpAddress) {
 	memcpy(opcodeStorage, absJmpNoRegister, sizeof(absJmpNoRegister));
 
 	*reinterpret_cast<BYTE**>(opcodeStorage + 6) = desiredJmpAddress;
+}
+
+/*
+* Formats absolute jmp code to jump to our desired address
+* @param opcodeStorage Location to store the formatted instructions at
+* @param desiredCallAddress Pointer to our desired call location
+*/
+void FormatAbsoluteCallCode(BYTE* opcodeStorage, BYTE* desiredCallAddress) {
+	memcpy(opcodeStorage, absCall, sizeof(absCall));
+
+	*reinterpret_cast<BYTE**>(opcodeStorage + 2) = desiredCallAddress;
+}
+
+
+/*
+* Formats hook page leave code to subtract 1 from the amount of current gateway memory page accessors.
+* @param opcodeStorage Location to store the formatted instructions at
+* @param gatewayStart Pointer to the start of the gateway
+*/
+void FormatHookPageLeave(BYTE* opcodeStorage) {
+	memcpy(opcodeStorage, hookPageLeave, sizeof(hookPageLeave));
+
+	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES - sizeof(destPrepPrologue) - sizeof(absCall) - sizeof(destEpilogue) - 8; // -8 since rip already points to next instruction, it wont store it at the correct offset
 }
 
 // Checks whether an instruction inside our desired hook area is a relative JMP or CALL. If so, returns true, since we would have to recalculate those CALL and JMP destinations.
@@ -215,8 +200,14 @@ bool DoesInstructionNeedRecalculating(BYTE* instructionPtr) {
 	return false;
 }
 
-// Returns the amount of bytes we will minimally need to copy so that we can properly execute the target function prologue.
-int FindMinValidInstructionsSize(BYTE* targetFunc) {
+/*
+* Returns the amount of bytes we would need to jump over, if we were to replace them with an absJmpNoRegister, such that we don't get invalid/incorrect instructions.
+*
+* @param targetFunc Pointer to the start of our desired function.
+* 
+* @return Amount of bytes we need to jump from the function start to not get invalid instructions.
+*/
+int AbsJmpNumBytesToSave(BYTE* targetFunc) {
 	int currentOffset = 0;
 
 	// find an offset that is suitable to avoid corrupting asm instructions
@@ -233,122 +224,105 @@ int FindMinValidInstructionsSize(BYTE* targetFunc) {
 	return currentOffset;
 }
 
-// Get the hook start & end address from our desired offset in the target function. Actual placement may differ from offset due to relative JMP and CALL instructions
-// which we would have to recalculate in our code-cave.
-std::tuple<BYTE*, BYTE*> GetHookStartAndEndAddress(BYTE* targetFunc, int alignedOffset) {
-	// get the hook start address
-	// and end address that is enough for us to fit our absJmpNoRegister instructions in between
-	BYTE* hookStart = targetFunc + alignedOffset;
-	BYTE* hookEnd = hookStart;
-	while (hookEnd < hookStart + sizeof(absJmpNoRegister) && (hookEnd - (targetFunc + alignedOffset)) <= 0x7FF) {
-		hde64s hdeState = { 0 };
-		int size = hde64_disasm(hookEnd, &hdeState);
-		hookEnd += size;
 
-		if (DoesInstructionNeedRecalculating(hookEnd))
-			hookStart = hookEnd; // possible infinite loop, thus the second condition inside while loop
-
-		if (hdeState.flags & F_ERROR)
-			return std::make_tuple(nullptr, nullptr);
-	}
-
-	if ((hookEnd - (targetFunc + alignedOffset)) > 0x7FF)
-		return std::make_tuple(nullptr, nullptr);
-
-	return std::make_tuple(hookStart, hookEnd);
-}
-
-// Creates a detached trampoline hook at the start of our target function to our destination function without extra coding needed.
-// Hooking this way will make you unable to modify the return value of the target function. Destination function gets executed before target function.
-// GATEWAY MEMORY: after the max gateway size bytes, 0-7 is reserved for return address, 8-15 is reserved for page accessor count and 16-... is reserved for the stack
-std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destinationFunc) {
-	static_assert(sizeof(destPrepPrologue)+sizeof(absJmpNoRegister)+sizeof(destEpilogue)+MAX_ORIG_INSTRUCTIONS+sizeof(absJmpNoRegister) <= MAX_GATEWAY_SIZE_BYTES);
-
-	int targetFuncBytes = FindMinValidInstructionsSize(targetFunc);
-	if (targetFuncBytes == -1)
+// Creates a hook inside our target function without interfereing with the target function's work.
+// This means that even though our destination function will receive the target function's arguments, we will not be able to modify anything inside of the target function (including return value etc)
+std::unique_ptr<Hook> CreateHook64Standalone(BYTE* targetFunc, BYTE* destinationFunc) {
+	int offsetValidOpcode = AbsJmpNumBytesToSave(targetFunc);
+	if (offsetValidOpcode == -1)
 		return nullptr;
 
-	BYTE* targetJmpBackAddy = targetFunc + targetFuncBytes;
-	// copy the original bytes to our buffer
-	BYTE targetFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS];
-	memcpy(targetFuncOriginalOpcodes, targetFunc, targetFuncBytes);
+	BYTE* hookStart = targetFunc;
+	BYTE* hookEnd = targetFunc + offsetValidOpcode;
+	uint64_t numOriginalOpcodes = hookEnd - hookStart;
 
-	BYTE* gateway = static_cast<BYTE*>(VirtualAlloc(0, MAX_GATEWAY_SIZE_BYTES+NUM_PRESERVED_REGS*8+128, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE));
+	// copy target func opcodes
+	BYTE originalOpcodes[MAX_ORIG_INSTRUCTIONS] = { 0 };
+	memcpy(originalOpcodes, hookStart, numOriginalOpcodes);
+
+	// allocate enough memory to preserve all registers
+	// call our hook func, pop all registers and return
+	// to our target func at the **appropriate** location
+	BYTE* gateway = static_cast<BYTE*>(VirtualAlloc(0, MAX_GATEWAY_SIZE_BYTES+16, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)); // will still allocate a whole page
 	if (!gateway)
 		return nullptr;
 
-	// start writing prologue code for our gateway
+	std::unique_ptr<Hook> hook = std::make_unique<Hook>(hookStart, gateway, originalOpcodes, numOriginalOpcodes);
+
+	// start copying instructions to our gateway
 	BYTE* gatewayInstructionPtr = gateway;
 
-	// 1. destination jmp prologue, preparation
-	BYTE destinationPrep[sizeof(destPrepPrologue)] = { 0 };
-	FormatDestinationPrologue(destinationPrep, gateway);
-	memcpy(gatewayInstructionPtr, destinationPrep, sizeof(destinationPrep));
-	gatewayInstructionPtr += sizeof(destinationPrep);
+	// 1. destination call preparation, prologue
+	BYTE destPrologueOpcodes[sizeof(destPrepPrologue)] = { 0 };
+	FormatDestinationPrologue(destPrologueOpcodes);
+	memcpy(gatewayInstructionPtr, destPrologueOpcodes, sizeof(destPrologueOpcodes));
+	gatewayInstructionPtr += sizeof(destPrologueOpcodes);
 
-	// 2. jmp to our destination func, it will ret back to our gateway thanks to the prologue
-	BYTE destJmp[sizeof(absJmpNoRegister)] = { 0 };
-	FormatAbsoluteJmpCode(destJmp, destinationFunc);
-	memcpy(gatewayInstructionPtr, destJmp, sizeof(absJmpNoRegister));
-	gatewayInstructionPtr += sizeof(absJmpNoRegister);
+	// 2. call destination func
+	BYTE callOpcodes[sizeof(absCall)];
+	FormatAbsoluteCallCode(absCall, destinationFunc);
+	memcpy(gatewayInstructionPtr, callOpcodes, sizeof(callOpcodes));
+	gatewayInstructionPtr += sizeof(callOpcodes);
 
-	// 3. destination return epilogue
-	BYTE epilogue[sizeof(destEpilogue)] = { 0 };
-	FormatDestinationEpilogue(epilogue, gateway);
-	memcpy(gatewayInstructionPtr, epilogue, sizeof(epilogue));
-	gatewayInstructionPtr += sizeof(epilogue);
+	// 3. destination call cleanup, epilogue
+	BYTE epilogueOpcodes[sizeof(destEpilogue)];
+	FormatDestinationEpilogue(epilogueOpcodes);
+	memcpy(gatewayInstructionPtr, epilogueOpcodes, sizeof(epilogueOpcodes));
+	gatewayInstructionPtr += sizeof(epilogueOpcodes);
 
-	// 4. execute original bytes
-	memcpy(gatewayInstructionPtr, targetFuncOriginalOpcodes, targetFuncBytes);
-	gatewayInstructionPtr += targetFuncBytes;
+	// 4. hook page leave code
+	BYTE hookLeaveOpcodes[sizeof(hookPageLeave)];
+	FormatHookPageLeave(hookLeaveOpcodes);
+	memcpy(gatewayInstructionPtr, hookLeaveOpcodes, sizeof(hookLeaveOpcodes));
+	gatewayInstructionPtr += sizeof(hookLeaveOpcodes);
 
-	// 5. return to target func
-	BYTE jmpBack[sizeof(absJmpNoRegister)] = { 0 };
-	FormatAbsoluteJmpCode(jmpBack, targetFunc + targetFuncBytes);
-	memcpy(gatewayInstructionPtr, jmpBack, sizeof(jmpBack));
-
-	return std::make_unique<Hook>(gateway, targetFunc, targetFuncOriginalOpcodes, targetFuncBytes);
-}
-
-
-
-
-// Hook class code
-Hook::Hook(BYTE* gatewayStart, BYTE* targetLoc, BYTE targetFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int numOriginalOpcodes) {
-	this->gatewayStart = gatewayStart;
-	this->targetLoc = targetLoc;
-	memcpy(this->targetFuncOriginalOpcodes, targetFuncOriginalOpcodes, numOriginalOpcodes);
-	this->numOriginalOpcodes = numOriginalOpcodes;
-}
-
-Hook::~Hook() {
-	this->Delete();
-}
-
-// TODO:
-void Hook::Enable() {
+	// 5. jmp to our target after our jmp instruction
 	BYTE jmpOpcodes[sizeof(absJmpNoRegister)];
-	FormatAbsoluteJmpCode(jmpOpcodes, this->gatewayStart);
+	FormatAbsoluteJmpCode(jmpOpcodes, hookEnd);
 
-	DWORD oldProtect;
-	VirtualProtect(this->targetLoc, this->numOriginalOpcodes, PAGE_EXECUTE_READWRITE, &oldProtect);
-	memcpy(this->targetLoc, jmpOpcodes, sizeof(jmpOpcodes));
-	VirtualProtect(this->targetLoc, this->numOriginalOpcodes, oldProtect, nullptr);
+	return std::make_unique<Hook>(hookStart, gateway, originalOpcodes, numOriginalOpcodes);
 }
 
-// TODO:
-void Hook::Disable() {
-	DWORD oldProtect;
-	VirtualProtect(this->targetLoc, this->numOriginalOpcodes, PAGE_EXECUTE_READWRITE, &oldProtect);
-	memcpy(this->targetLoc, this->targetFuncOriginalOpcodes, this->numOriginalOpcodes);
-	VirtualProtect(this->targetLoc, this->numOriginalOpcodes, oldProtect, nullptr);
-}
+// Creates a hook inside our target function which jumps to our own & lets us modify the return values etc.
+std::unique_ptr<Hook> CreateHook64Attached(BYTE* targetFunc, BYTE* destinationFunc, BYTE** gatewayToCallOriginalTarget, int desiredOffsetFromStart) {
+	return nullptr;
 
-bool Hook::Delete() {
-	this->Disable();
-
-	while (*reinterpret_cast<uint64_t*>(this->gatewayStart + MAX_GATEWAY_SIZE_BYTES + 8) != 0) // wait for the page to stop being in use
-		continue;
-
-	return VirtualFree(this->gatewayStart, 0, MEM_RELEASE);
+	/*int alignedOffset = FindAlignedOffsetFromStart(targetFunc, desiredOffsetFromStart);
+	if (alignedOffset == -1)
+		return nullptr;
+	// didn't find a good place for hook placement
+	std::tuple<BYTE*, BYTE*> hookPointers = GetHookStartAndEndAddress(targetFunc, alignedOffset);
+	if (std::get<0>(hookPointers) == nullptr)
+		return nullptr;
+	BYTE* hookStart = std::get<0>(hookPointers);
+	BYTE* hookEnd = std::get<1>(hookPointers);
+	// copy target func opcodes
+	uint64_t opcodesBetween = hookEnd - hookStart;
+	BYTE originalInstructions[MAX_ORIG_INSTRUCTIONS] = { 0 };
+	memcpy(originalInstructions, hookStart, opcodesBetween);
+	// TODO:
+	int paddingSize = roundToNearestMultiple(8, sizeof(absJmpNoRegister));
+	uint64_t gatewaySize = sizeof(absJmpNoRegister) + paddingSize + opcodesBetween + sizeof(absJmpNoRegister);
+	BYTE* gateway = static_cast<BYTE*>(VirtualAlloc(0, gatewaySize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)); // will still allocate a whole page
+	if (!gateway)
+		return nullptr;
+	BYTE* gatewayInstructionPtr = gateway;
+	// start writing opcodes to gateway
+	// 1. jmp to our own function
+	memcpy(gatewayInstructionPtr, absJmpNoRegister, sizeof(absJmpNoRegister));
+	*reinterpret_cast<BYTE**>(gatewayInstructionPtr + 6) = destinationFunc;
+	gatewayInstructionPtr += sizeof(absJmpNoRegister);
+	// 2. padding
+	memset(gatewayInstructionPtr, 0xCC, paddingSize);
+	gatewayInstructionPtr += paddingSize;
+	// 3. function prologue for our hooked function
+	if (gatewayToCallOriginalTarget)
+		*gatewayToCallOriginalTarget = gatewayInstructionPtr;
+	memcpy(gatewayInstructionPtr, originalInstructions, opcodesBetween);
+	gatewayInstructionPtr += opcodesBetween;
+	// 4. jmp to the next instruction after our hook bytes in the target func
+	memcpy(gatewayInstructionPtr, absJmpNoRegister, sizeof(absJmpNoRegister));
+	*reinterpret_cast<BYTE**>(gatewayInstructionPtr + 6) = hookEnd;
+	// all done, now initialize our hook
+	return std::make_unique<Hook>(hookStart, gateway, gatewaySize, originalInstructions, opcodesBetween);*/
 }
