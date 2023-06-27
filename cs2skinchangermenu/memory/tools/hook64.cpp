@@ -6,10 +6,6 @@
 #include <cmath>
 #include <memory>
 
-static_assert(sizeof(destPrepPrologue) + sizeof(absCall) + sizeof(destEpilogue) + MAX_ORIG_INSTRUCTIONS + sizeof(hookPageLeave) + sizeof(absJmpNoRegister) <= MAX_GATEWAY_SIZE_BYTES, "increase gateway size");
-static_assert(MAX_GATEWAY_SIZE_BYTES <= INT32_MAX, "gateway size too large");
-static_assert(OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <= INT32_MAX, "stack original return address storage offset too large, you will point out of stack");
-
 BYTE absJmpNoRegister[] = {
 	0xFF, 0x25, 0x00, 0x00, 0x00, 0x00, // jmp [rip] 
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 // 0x???????? <- rip already points here, thus an absolute jump will still occur correctly
@@ -23,7 +19,7 @@ BYTE absCall[] = {
 
 BYTE destPrepPrologue[] = {
 	// add 1 to our gateway page accessor count
-	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8], 1 <- rip will point to next instruction 8 bytes away, adding MAX_GATEWAY_SIZE_BYTES will make it not aligned correctly at the gateway size addy
+	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x10, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8], 1 <- rip will point to next instruction 8 bytes away, adding MAX_GATEWAY_SIZE_BYTES will make it not aligned correctly at the gateway size addy
 
 	// start storing registers and original return address somewhere up on our stack
 	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
@@ -78,6 +74,10 @@ BYTE destEpilogue[] = {
 BYTE hookPageLeave[] = {
 	0x48, 0x83, 0x2D, 0x00, 0x00, 0x00, 0x00, 0x01 // sub qword ptr [rip + (offset to gateway page accessor count)], 1
 };
+
+static_assert(sizeof(destPrepPrologue) + sizeof(absCall) + sizeof(destEpilogue) + MAX_ORIG_INSTRUCTIONS + sizeof(hookPageLeave) + sizeof(absJmpNoRegister) <= MAX_GATEWAY_SIZE_BYTES, "increase gateway size");
+static_assert(MAX_GATEWAY_SIZE_BYTES <= INT32_MAX, "gateway size too large");
+static_assert(OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <= INT32_MAX, "stack original return address storage offset too large, you will point out of stack");
 
 Hook::Hook(BYTE* targetJmpPlacementLoc, BYTE* hookGatewayLoc, BYTE targetOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int numOriginalOpcodes) {
 	this->targetJmpPlacementLoc = targetJmpPlacementLoc;
@@ -227,7 +227,7 @@ int AbsJmpNumBytesToSave(BYTE* targetFunc) {
 
 // Creates a hook inside our target function without interfereing with the target function's work.
 // This means that even though our destination function will receive the target function's arguments, we will not be able to modify anything inside of the target function (including return value etc)
-std::unique_ptr<Hook> CreateHook64Standalone(BYTE* targetFunc, BYTE* destinationFunc) {
+std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destinationFunc) {
 	int offsetValidOpcode = AbsJmpNumBytesToSave(targetFunc);
 	if (offsetValidOpcode == -1)
 		return nullptr;
@@ -247,8 +247,6 @@ std::unique_ptr<Hook> CreateHook64Standalone(BYTE* targetFunc, BYTE* destination
 	if (!gateway)
 		return nullptr;
 
-	std::unique_ptr<Hook> hook = std::make_unique<Hook>(hookStart, gateway, originalOpcodes, numOriginalOpcodes);
-
 	// start copying instructions to our gateway
 	BYTE* gatewayInstructionPtr = gateway;
 
@@ -259,19 +257,19 @@ std::unique_ptr<Hook> CreateHook64Standalone(BYTE* targetFunc, BYTE* destination
 	gatewayInstructionPtr += sizeof(destPrologueOpcodes);
 
 	// 2. call destination func
-	BYTE callOpcodes[sizeof(absCall)];
-	FormatAbsoluteCallCode(absCall, destinationFunc);
+	BYTE callOpcodes[sizeof(absCall)] = { 0 };
+	FormatAbsoluteCallCode(callOpcodes, destinationFunc);
 	memcpy(gatewayInstructionPtr, callOpcodes, sizeof(callOpcodes));
 	gatewayInstructionPtr += sizeof(callOpcodes);
 
 	// 3. destination call cleanup, epilogue
-	BYTE epilogueOpcodes[sizeof(destEpilogue)];
+	BYTE epilogueOpcodes[sizeof(destEpilogue)] = { 0 };
 	FormatDestinationEpilogue(epilogueOpcodes);
 	memcpy(gatewayInstructionPtr, epilogueOpcodes, sizeof(epilogueOpcodes));
 	gatewayInstructionPtr += sizeof(epilogueOpcodes);
 
 	// 4. hook page leave code
-	BYTE hookLeaveOpcodes[sizeof(hookPageLeave)];
+	BYTE hookLeaveOpcodes[sizeof(hookPageLeave)] = { 0 };
 	FormatHookPageLeave(hookLeaveOpcodes);
 	memcpy(gatewayInstructionPtr, hookLeaveOpcodes, sizeof(hookLeaveOpcodes));
 	gatewayInstructionPtr += sizeof(hookLeaveOpcodes);
@@ -284,7 +282,7 @@ std::unique_ptr<Hook> CreateHook64Standalone(BYTE* targetFunc, BYTE* destination
 }
 
 // Creates a hook inside our target function which jumps to our own & lets us modify the return values etc.
-std::unique_ptr<Hook> CreateHook64Attached(BYTE* targetFunc, BYTE* destinationFunc, BYTE** gatewayToCallOriginalTarget, int desiredOffsetFromStart) {
+std::unique_ptr<Hook> CreateTrampHook64(BYTE* targetFunc, BYTE* destinationFunc) {
 	return nullptr;
 
 	/*int alignedOffset = FindAlignedOffsetFromStart(targetFunc, desiredOffsetFromStart);
