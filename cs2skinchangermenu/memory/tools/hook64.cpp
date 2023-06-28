@@ -136,7 +136,7 @@ void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
 	*reinterpret_cast<int*>(opcodeStorage + 11) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset |  sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
 	*reinterpret_cast<int*>(opcodeStorage + 18) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset to original ret addr | sub rsp, NUM_STORED_REGISTERS*8 <- int
 
-	*reinterpret_cast<int*>(opcodeStorage + 48) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8; // RSP point stack to original loc | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
+	*reinterpret_cast<int*>(opcodeStorage + 48) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8 + 8; // RSP point stack to original loc, +8 since the last push will offset the register by 8 too high of the original pos | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
 
 	*reinterpret_cast<BYTE**>(opcodeStorage + 55) = gateway + sizeof(destPrepPrologue) + sizeof(absJmpNoRegister);
 }
