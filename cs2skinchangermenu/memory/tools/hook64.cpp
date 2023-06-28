@@ -242,10 +242,43 @@ int AbsJmpNumBytesToSave(BYTE* targetFunc) {
 	return currentOffset;
 }
 
+/*
+* Finds a good spot to place our JMP at without overwriting any of the target function's own jmp or call offsets.
+*
+* @param targetFunc Pointer to the start of our desired function.
+*
+* @return Pointer to the place most suitable to place the hook
+*/
+BYTE* FindGoodHookPlacementLoc(BYTE* targetFunc) {
+	BYTE* start = targetFunc;
+	BYTE* end = start;
+
+	// find an offset that is suitable to avoid corrupting asm instructions
+	while (static_cast<uint64_t>(end-start) < sizeof(absJmpNoRegister)) {
+		hde64s hdeState = { 0 };
+		if (DoesInstructionNeedRecalculating(end)) {
+			int size = hde64_disasm(start, &hdeState);
+			end += size;
+			start = end;
+			continue;
+		}
+
+		int size = hde64_disasm(start, &hdeState);
+		end += size;
+
+		if (hdeState.flags & F_ERROR)
+			return nullptr;
+	}
+
+	return start;
+}
+
 
 // Creates a hook inside our target function without interfereing with the target function's work.
 // This means that even though our destination function will receive the target function's arguments, we will not be able to modify anything inside of the target function (including return value etc)
 std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destinationFunc) {
+	targetFunc = FindGoodHookPlacementLoc(targetFunc);
+	
 	int offsetValidOpcode = AbsJmpNumBytesToSave(targetFunc);
 	if (offsetValidOpcode == -1)
 		return nullptr;
@@ -313,6 +346,8 @@ std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destina
 
 // Creates a classic trampoline hook from our target function to our destination function. Return values can be modified.
 std::unique_ptr<Hook> CreateTrampHook64(BYTE* targetFunc, BYTE* destinationFunc, BYTE** pCallOriginalFunc) {
+	targetFunc = FindGoodHookPlacementLoc(targetFunc);
+	
 	int offsetValidOpcode = AbsJmpNumBytesToSave(targetFunc);
 	if (offsetValidOpcode == -1)
 		return nullptr;
@@ -354,12 +389,14 @@ std::unique_ptr<Hook> CreateTrampHook64(BYTE* targetFunc, BYTE* destinationFunc,
 	// 4. function prologue for our hooked function
 	if (pCallOriginalFunc)
 		*pCallOriginalFunc = gatewayInstructionPtr;
-	
 	memcpy(gatewayInstructionPtr, originalInstructions, numOriginalOpcodes);
 	gatewayInstructionPtr += numOriginalOpcodes;
+
 	// 5. hook page leave code
 	BYTE hookLeaveOpcodes[sizeof(hookPageLeave)] = { 0 };
 	FormatHookPageLeave(hookLeaveOpcodes, gatewayInstructionPtr - gateway);
+	memcpy(gatewayInstructionPtr, hookLeaveOpcodes, sizeof(hookLeaveOpcodes));
+	gatewayInstructionPtr += sizeof(hookLeaveOpcodes);
 
 	// 6. jmp to the next instruction after our hook bytes in the target func
 	BYTE jmpBack[sizeof(absJmpNoRegister)] = { 0 };

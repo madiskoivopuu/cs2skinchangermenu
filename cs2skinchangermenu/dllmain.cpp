@@ -3,6 +3,7 @@
 
 #include "memory/gamefuncs.h"
 #include "memory/interface.h"
+#include "memory/hooks.h"
 #include "memory/tools/hook64.h"
 
 #include "sdk/econ/CCStrike15ItemDefinition.h"
@@ -92,7 +93,7 @@ DWORD WINAPI Main(HMODULE hModule) {
     FILE* f;
     freopen_s(&f, "CONOUT$", "w", stdout);
     
-    if (!LoadInterfaces() || !InitializeFunctions())
+    if (!LoadInterfaces() || !InitializeFunctions() || !InitGUI() || !InitializeHooks())
         return ExitRoutine(hModule, f);
 
     CCStrike15ItemSchema* schema = Interface::client->GetCCStrike15ItemSystem()->GetCCStrike15ItemSchema();
@@ -105,58 +106,8 @@ DWORD WINAPI Main(HMODULE hModule) {
 
     //std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
-
-    std::unique_ptr<Hook> memAllocHook = CreateTrampHook64_Advanced(
-        reinterpret_cast<BYTE*>(GetProcAddress(GetModuleHandle("tier0.dll"), "UtlMemory_Alloc")),
-        reinterpret_cast<BYTE*>(&HookTestFn)
-    );
-//    Sleep(8000);
-    memAllocHook.get()->Enable();
-
-    /*InitGUI();
-    
-    struct nk_font_atlas* atlas;
-    nk_d3d11_font_stash_begin(&atlas);
-    nk_d3d11_font_stash_end();
-    
-    struct nk_colorf bg;
-    bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
-
-    while (true) {
-        if (nk_begin(nuklearCtx, "Demo", nk_rect(50, 50, 230, 250),
-            NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE |
-            NK_WINDOW_MINIMIZABLE | NK_WINDOW_TITLE))
-        {
-            enum { EASY, HARD };
-            static int op = EASY;
-            static int property = 20;
-
-            nk_layout_row_static(nuklearCtx, 30, 80, 1);
-            if (nk_button_label(nuklearCtx, "button"))
-                fprintf(stdout, "button pressed\n");
-            nk_layout_row_dynamic(nuklearCtx, 30, 2);
-            if (nk_option_label(nuklearCtx, "easy", op == EASY)) op = EASY;
-            if (nk_option_label(nuklearCtx, "hard", op == HARD)) op = HARD;
-            nk_layout_row_dynamic(nuklearCtx, 22, 1);
-            nk_property_int(nuklearCtx, "Compression:", 0, &property, 100, 10, 1);
-
-            nk_layout_row_dynamic(nuklearCtx, 20, 1);
-            nk_label(nuklearCtx, "background:", NK_TEXT_LEFT);
-            nk_layout_row_dynamic(nuklearCtx, 25, 1);
-            if (nk_combo_begin_color(nuklearCtx, nk_rgb_cf(bg), nk_vec2(nk_widget_width(nuklearCtx), 400))) {
-                nk_layout_row_dynamic(nuklearCtx, 120, 1);
-                bg = nk_color_picker(nuklearCtx, bg, NK_RGBA);
-                nk_layout_row_dynamic(nuklearCtx, 25, 1);
-                bg.r = nk_propertyf(nuklearCtx, "#R:", 0, bg.r, 1.0f, 0.01f, 0.005f);
-                bg.g = nk_propertyf(nuklearCtx, "#G:", 0, bg.g, 1.0f, 0.01f, 0.005f);
-                bg.b = nk_propertyf(nuklearCtx, "#B:", 0, bg.b, 1.0f, 0.01f, 0.005f);
-                bg.a = nk_propertyf(nuklearCtx, "#A:", 0, bg.a, 1.0f, 0.01f, 0.005f);
-                nk_combo_end(nuklearCtx);
-            }
-        }
-        nk_end(nuklearCtx);
-        Sleep(1);
-    }*/
+    Sleep(8000);
+    hooks::scPresentHook->Enable();
 
     //kv.data.keys["lang"].keys["tokens"];
 
@@ -167,7 +118,8 @@ DWORD WINAPI Main(HMODULE hModule) {
             break;
     }
 
-    memAllocHook.get()->Delete();
+    //hooks::scPresentHook->Disable();
+
     ExitRoutine(hModule, f);
     return 0;
 }

@@ -17,6 +17,7 @@
 #define NK_IMPLEMENTATION
 #define NK_D3D11_IMPLEMENTATION
 #include "gui.h"
+#include "D3D11StateSaver.h"
 
 #ifdef _DEBUG
 #include <assert.h>
@@ -29,13 +30,17 @@ ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
 ID3D11RenderTargetView* rt_view = nullptr;
 nk_context* nuklearCtx = nullptr;
+ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
+D3D11StateSaver stateSaver = { };
+
+bool guiInitFromHook = false;
+bool restoreState = false;
 
 /////////////////////////////
 //		WINDOW CALLBACK
 ////////////////////////////
 // taken from nuklear d3d11 impl
-static void
-set_swap_chain_size(int width, int height)
+void set_swap_chain_size(int width, int height)
 {
 	ID3D11Texture2D* back_buffer;
 	D3D11_RENDER_TARGET_VIEW_DESC desc;
@@ -97,7 +102,7 @@ WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 bool CreateWindowClass(const char* className) {
 	windowClass.cbSize = sizeof(WNDCLASSEX);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
-	windowClass.lpfnWndProc = WindowProc;
+	windowClass.lpfnWndProc = &WindowProc;
 	windowClass.cbClsExtra = 0;
 	windowClass.cbWndExtra = 0;
 	windowClass.hInstance = GetModuleHandle(NULL);
@@ -125,18 +130,21 @@ bool CreateDevice() {
 		return false;
 	
 	DXGI_SWAP_CHAIN_DESC swap_chain_desc = { 0 };
+	ZeroMemory(&swap_chain_desc, sizeof(swap_chain_desc));
 
-	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 60;
-	swap_chain_desc.BufferDesc.RefreshRate.Denominator = 1;
-	swap_chain_desc.SampleDesc.Count = 1;
-	swap_chain_desc.SampleDesc.Quality = 0;
-	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swap_chain_desc.BufferCount = 1;
+	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swap_chain_desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	swap_chain_desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 	swap_chain_desc.OutputWindow = window;
-	swap_chain_desc.Windowed = TRUE;
+	swap_chain_desc.SampleDesc.Count = 1;
 	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	swap_chain_desc.Flags = 0;
+	//swap_chain_desc.BufferDesc.Width = 1920;
+	//swap_chain_desc.BufferDesc.Height = 1080;
+	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 244;
+	swap_chain_desc.BufferDesc.RefreshRate.Denominator = 1;
 
 	if (CreateDeviceD3D11(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, NULL, 0, D3D11_SDK_VERSION,
 		&swap_chain_desc, &swap_chain, &device, NULL, &context) < 0)
@@ -155,8 +163,8 @@ bool InitGUI() {
 		WS_OVERLAPPEDWINDOW,
 		0,
 		0,
-		100,
-		100,
+		10000,
+		10000,
 		0,
 		0,
 		windowClass.hInstance,
@@ -169,9 +177,12 @@ bool InitGUI() {
 	if (!CreateDevice())
 		return false;
 
-	nuklearCtx = nk_d3d11_init(device, WINDOW_WIDTH, WINDOW_HEIGHT, MAX_VERTEX_BUFFER, MAX_INDEX_BUFFER);
+	// our own created stuff
+	//swap_chain->Release();
+	//context->Release();
+	//rt_view->Release();
 
-	return nuklearCtx != nullptr;
+	return true;
 }
 
 void DestroyGUI() {
