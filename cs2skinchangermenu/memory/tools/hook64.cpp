@@ -40,7 +40,13 @@ BYTE destPrepPrologue[] = {
 	0x41, 0x55, // push r13
 	0x41, 0x56, // push r14
 	0x41, 0x57, // push r15
-	0x48, 0x81, 0xC4, 0x00, 0x00, 0x00, 0x00 // add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 + 8 <- int, +8 since we want to overwrite the original return address
+
+	// replace the return address with our gateway epilogue start addy
+	0x48, 0x81, 0xC4, 0x00, 0x00, 0x00, 0x00, // add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
+	0x50, // push rax
+	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, // movabs rax, 0x0000000000000000
+	0x48, 0x89, 0x44, 0x24, 0x08, // mov [rsp+8], rax
+	0x58 // pop rax
 };
 
 BYTE destEpilogue[] = {
@@ -120,9 +126,9 @@ bool Hook::Delete() {
 /*
 * Formats the destination call prologue instructions to reset the manual stack alignment bool and if needed, restore the stack to is previous non 16-byte alignment.
 * @param opcodeStorage Location to store the formatted instructions at
-* @param manualAlignment Pointer to bool which shows whether we altered the stack such that it would be 16-byte aligned.
+* @param gateway Pointer to the start of the gateway
 */
-void FormatDestinationPrologue(BYTE* opcodeStorage) {
+void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
 	memcpy(opcodeStorage, destPrepPrologue, sizeof(destPrepPrologue));
 
 	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES - 8; // RIP offset | add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8]
@@ -130,14 +136,14 @@ void FormatDestinationPrologue(BYTE* opcodeStorage) {
 	*reinterpret_cast<int*>(opcodeStorage + 11) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset |  sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
 	*reinterpret_cast<int*>(opcodeStorage + 18) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset to original ret addr | sub rsp, NUM_STORED_REGISTERS*8 <- int
 
-	*reinterpret_cast<int*>(opcodeStorage + 48) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8 + 8; // RSP point stack to original loc | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 + 8 <- int
+	*reinterpret_cast<int*>(opcodeStorage + 48) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8; // RSP point stack to original loc | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
+
+	*reinterpret_cast<BYTE**>(opcodeStorage + 55) = gateway + sizeof(destPrepPrologue) + sizeof(absJmpNoRegister);
 }
 
 /*
 * Formats the destination call epilogue instructions needed to align the stack and copy the original contents of it, so that our destination function doesn't overwrite something important.
 * @param opcodeStorage Location to store the formatted instructions at
-* @param stackPreservationLoc Pointer to the location where the stack has been stored at
-* @param manualAlignment Pointer to bool which shows whether we altered the stack such that it would be 16-byte aligned.
 */
 void FormatDestinationEpilogue(BYTE* opcodeStorage) {
 	memcpy(opcodeStorage, destEpilogue, sizeof(destEpilogue));
@@ -253,7 +259,7 @@ std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destina
 
 	// 1. destination call preparation, prologue
 	BYTE destPrologueOpcodes[sizeof(destPrepPrologue)] = { 0 };
-	FormatDestinationPrologue(destPrologueOpcodes);
+	FormatDestinationPrologue(destPrologueOpcodes, gateway);
 	memcpy(gatewayInstructionPtr, destPrologueOpcodes, sizeof(destPrologueOpcodes));
 	gatewayInstructionPtr += sizeof(destPrologueOpcodes);
 
