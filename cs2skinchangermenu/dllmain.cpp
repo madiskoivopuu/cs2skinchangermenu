@@ -110,7 +110,7 @@ DWORD WINAPI Main(HMODULE hModule) {
         reinterpret_cast<BYTE*>(GetProcAddress(GetModuleHandle("tier0.dll"), "UtlMemory_Alloc")),
         reinterpret_cast<BYTE*>(&HookTestFn)
     );
-
+    Sleep(8000);
     memAllocHook.get()->Enable();
 
     /*InitGUI();
