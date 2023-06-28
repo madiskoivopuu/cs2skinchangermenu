@@ -91,7 +91,7 @@ Hook::Hook(BYTE* targetJmpPlacementLoc, BYTE* hookGatewayLoc, BYTE targetOrigina
 	this->hookGatewayLoc = hookGatewayLoc;
 
 	// target original opcodes
-	memcpy(targetOriginalOpcodes, targetOriginalOpcodes, numOriginalOpcodes);
+	memcpy(this->hookTargetOriginalOpcodes, targetOriginalOpcodes, numOriginalOpcodes);
 	this->numOriginalOpcodes = numOriginalOpcodes;
 }
 
@@ -113,7 +113,7 @@ void Hook::Enable() {
 void Hook::Disable() {
 	DWORD oldProtect;
 	VirtualProtect(this->targetJmpPlacementLoc, this->numOriginalOpcodes, PAGE_EXECUTE_READWRITE, &oldProtect);
-	memcpy(this->targetJmpPlacementLoc, this->hookTargetMidFuncOriginalOpcodes, this->numOriginalOpcodes);
+	memcpy(this->targetJmpPlacementLoc, this->hookTargetOriginalOpcodes, this->numOriginalOpcodes);
 	VirtualProtect(this->targetJmpPlacementLoc, this->numOriginalOpcodes, oldProtect, nullptr);
 }
 

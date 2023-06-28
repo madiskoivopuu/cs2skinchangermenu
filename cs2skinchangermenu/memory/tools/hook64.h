@@ -31,7 +31,7 @@ private:
 	BYTE* targetJmpPlacementLoc; // TARGET FUNC location where the gateway jmp is placed
 	BYTE* hookGatewayLoc; // gateway location
 
-	BYTE hookTargetMidFuncOriginalOpcodes[MAX_ORIG_INSTRUCTIONS];
+	BYTE hookTargetOriginalOpcodes[MAX_ORIG_INSTRUCTIONS];
 	int numOriginalOpcodes; // necessary so we can actually execute the original target func's opcodes that were replaced by hooking
 };
 
