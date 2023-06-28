@@ -76,11 +76,11 @@ BYTE destEpilogue[] = {
 
 BYTE hookPageEnter[] = {
 	// add 1 to our gateway page accessor count
-	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x01, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8], 1 <- rip will point to next instruction 8 bytes away, adding MAX_GATEWAY_SIZE_BYTES will make it not aligned correctly at the gateway size addy
+	0xF0, 0x48, 0xFF, 0x05, 0x00, 0x00, 0x00, 0x00, // lock inc qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8] <- rip will point to next instruction 8 bytes away, adding MAX_GATEWAY_SIZE_BYTES will make it not aligned correctly at the gateway size addy
 };
 
 BYTE hookPageLeave[] = {
-	0x48, 0x83, 0x2D, 0x00, 0x00, 0x00, 0x00, 0x01 // sub qword ptr [rip + (offset to gateway page accessor count)], 1
+	0xF0, 0x48, 0xFF, 0x0D, 0x00, 0x00, 0x00, 0x00 // lock dec qword ptr [rip + (offset to gateway page accessor count)]
 };
 
 static_assert(sizeof(destPrepPrologue) + sizeof(absCall) + sizeof(destEpilogue) + MAX_ORIG_INSTRUCTIONS + sizeof(hookPageLeave) + sizeof(absJmpNoRegister) <= MAX_GATEWAY_SIZE_BYTES, "increase gateway size");
@@ -187,7 +187,7 @@ void FormatAbsoluteCallCode(BYTE* opcodeStorage, BYTE* desiredCallAddress) {
 void FormatHookPageEnter(BYTE* opcodeStorage) {
 	memcpy(opcodeStorage, hookPageEnter, sizeof(hookPageEnter));
 
-	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES - 8; // RIP offset | add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8]
+	*reinterpret_cast<int*>(opcodeStorage + 4) = MAX_GATEWAY_SIZE_BYTES - 8; // RIP offset | add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8]
 }
 
 /*
@@ -198,7 +198,7 @@ void FormatHookPageEnter(BYTE* opcodeStorage) {
 void FormatHookPageLeave(BYTE* opcodeStorage, uint64_t offset) {
 	memcpy(opcodeStorage, hookPageLeave, sizeof(hookPageLeave));
 
-	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES - offset - 8; // -8 since rip already points to next instruction, it wont store it at the correct offset
+	*reinterpret_cast<int*>(opcodeStorage + 4) = MAX_GATEWAY_SIZE_BYTES - offset - 8; // -8 since rip already points to next instruction, it wont store it at the correct offset
 }
 
 // Checks whether an instruction inside our desired hook area is a relative JMP or CALL. If so, returns true, since we would have to recalculate those CALL and JMP destinations.
