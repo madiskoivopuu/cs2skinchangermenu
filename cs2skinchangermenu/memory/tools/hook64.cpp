@@ -23,8 +23,8 @@ BYTE destPrepPrologue[] = {
 	0x48, 0x83, 0x05, 0x00, 0x00, 0x00, 0x00, 0x01, // add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8], 1 <- rip will point to next instruction 8 bytes away, adding MAX_GATEWAY_SIZE_BYTES will make it not aligned correctly at the gateway size addy
 
 	// start storing registers and original return address somewhere up on our stack
-	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
-	0xFF, 0xB4, 0x24, 0x00, 0x00, 0x00, 0x00, // push qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK]
+	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8 <- int, -8 since we want to store the return address exactly at offset OFFSET_STORE_REGS_AND_RETADDR_ON_STACK
+	0xFF, 0xB4, 0x24, 0x00, 0x00, 0x00, 0x00, // push qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8] <- -8 due to some weird rsp updating shit
 	0x50, // push rax
 	0x53, // push rbx
 	0x51, // push rcx
@@ -120,6 +120,9 @@ void Hook::Disable() {
 bool Hook::Delete() {
 	this->Disable();
 
+	while (*reinterpret_cast<uint64_t*>(this->hookGatewayLoc + MAX_GATEWAY_SIZE_BYTES) != 0)
+		continue;
+
 	return VirtualFree(this->hookGatewayLoc, 0, MEM_RELEASE);
 }
 
@@ -133,10 +136,10 @@ void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
 
 	*reinterpret_cast<int*>(opcodeStorage + 3) = MAX_GATEWAY_SIZE_BYTES - 8; // RIP offset | add qword ptr [rip+MAX_GATEWAY_SIZE_BYTES-8]
 
-	*reinterpret_cast<int*>(opcodeStorage + 11) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset |  sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
-	*reinterpret_cast<int*>(opcodeStorage + 18) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset to original ret addr | sub rsp, NUM_STORED_REGISTERS*8 <- int
+	*reinterpret_cast<int*>(opcodeStorage + 11) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK - 8; // RSP offset |  sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8 <- int
+	*reinterpret_cast<int*>(opcodeStorage + 18) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK - 8; // RSP offset to original ret addr | push qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8]
 
-	*reinterpret_cast<int*>(opcodeStorage + 48) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8 + 8; // RSP point stack to original loc, +8 since the last push will offset the register by 8 too high of the original pos | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
+	*reinterpret_cast<int*>(opcodeStorage + 48) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8; // RSP point stack to original loc, +8 since the last push will offset the register by 8 too high of the original pos | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
 
 	*reinterpret_cast<BYTE**>(opcodeStorage + 55) = gateway + sizeof(destPrepPrologue) + sizeof(absJmpNoRegister);
 }
