@@ -17,7 +17,7 @@
 #define NK_IMPLEMENTATION
 #define NK_D3D11_IMPLEMENTATION
 #include "gui.h"
-#include "D3D11StateSaver.h"
+#include <iostream>
 
 #ifdef _DEBUG
 #include <assert.h>
@@ -31,7 +31,7 @@ ID3D11DeviceContext* context = nullptr;
 ID3D11RenderTargetView* rt_view = nullptr;
 nk_context* nuklearCtx = nullptr;
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
-D3D11StateSaver stateSaver = { };
+WNDPROC originalWndProc = nullptr;
 
 bool guiInitFromHook = false;
 bool restoreState = false;
@@ -73,36 +73,10 @@ void set_swap_chain_size(int width, int height)
 	back_buffer->Release();
 }
 
-static LRESULT CALLBACK
-WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-	switch (msg)
-	{
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-
-	case WM_SIZE:
-		if (swap_chain)
-		{
-			int width = LOWORD(lparam);
-			int height = HIWORD(lparam);
-			set_swap_chain_size(width, height);
-			nk_d3d11_resize(context, width, height);
-		}
-		break;
-	}
-
-	if (nk_d3d11_handle_event(wnd, msg, wparam, lparam))
-		return 0;
-
-	return DefWindowProcW(wnd, msg, wparam, lparam);
-}
-
 bool CreateWindowClass(const char* className) {
 	windowClass.cbSize = sizeof(WNDCLASSEX);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
-	windowClass.lpfnWndProc = &WindowProc;
+	windowClass.lpfnWndProc = DefWindowProc;
 	windowClass.cbClsExtra = 0;
 	windowClass.cbWndExtra = 0;
 	windowClass.hInstance = GetModuleHandle(NULL);
@@ -189,4 +163,103 @@ void DestroyGUI() {
 	UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
 	if (window)
 		DestroyWindow(window);
+
+	SetWindowLongPtr(
+		window,
+		GWLP_WNDPROC,
+		reinterpret_cast<LONG_PTR>(originalWndProc)
+	);
+}
+
+// Window Process callback
+static LRESULT CALLBACK WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	switch (msg)
+	{
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	case WM_SIZE:
+		if (swap_chain)
+		{
+			int width = LOWORD(lparam);
+			int height = HIWORD(lparam);
+			set_swap_chain_size(width, height);
+			nk_d3d11_resize(context, width, height);
+		}
+		break;
+	}
+
+	//if (nk_d3d11_handle_event(wnd, msg, wparam, lparam))
+	//	return 1L;
+
+	nk_d3d11_handle_event(wnd, msg, wparam, lparam);
+	return CallWindowProc(originalWndProc, wnd, msg, wparam, lparam);
+}
+
+// Hook callback
+void OnPresentHookCalled(IDXGISwapChain* chain) {
+	// initialization phase
+	if (!guiInitFromHook) {
+		// actual device we want
+		chain->GetDevice(__uuidof(device), reinterpret_cast<void**>(&device));
+		device->GetImmediateContext(&context);
+
+		// set windowproc to our own window for now
+		DXGI_SWAP_CHAIN_DESC sd;
+		chain->GetDesc(&sd);
+		window = sd.OutputWindow;
+
+		originalWndProc = reinterpret_cast<WNDPROC>(
+			SetWindowLongPtr(sd.OutputWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WindowProc))
+		);
+
+		D3D11_VIEWPORT vpOld;
+		UINT nViewPorts = 1;
+
+		// make gui render at the front
+		ID3D11Texture2D* renderTargetTexture = nullptr;
+		if (SUCCEEDED(chain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<LPVOID*>(&renderTargetTexture))))
+		{
+			device->CreateRenderTargetView(renderTargetTexture, NULL, &g_pRenderTargetView);
+			renderTargetTexture->Release();
+		}
+
+		context->RSGetViewports(&nViewPorts, &vpOld);
+		nuklearCtx = nk_d3d11_init(device, vpOld.Width, vpOld.Height, MAX_VERTEX_BUFFER, MAX_INDEX_BUFFER);
+
+		struct nk_font_atlas* atlas;
+		nk_d3d11_font_stash_begin(&atlas);
+		nk_d3d11_font_stash_end();
+
+		guiInitFromHook = true;
+	}
+
+	/*MSG msg;
+	nk_input_begin(nuklearCtx);
+	while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+	{
+		nk_d3d11_handle_event(window, msg.message, msg.wParam, msg.lParam);
+	}
+	nk_input_end(nuklearCtx);*/
+
+	context->OMSetRenderTargets(1, &g_pRenderTargetView, NULL);
+
+	struct nk_colorf bg;
+	bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
+
+	static enum nk_style_header_align header_align = NK_HEADER_RIGHT;
+	static int show_app_about = nk_false;
+
+	nk_flags window_flags = NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_SCALABLE;
+	nuklearCtx->style.window.header.align = header_align;
+
+	if (nk_begin(nuklearCtx, "Overview", nk_rect(10, 10, 300, 400), window_flags))
+	{
+
+	}
+	nk_end(nuklearCtx);
+
+	nk_d3d11_render(context, NK_ANTI_ALIASING_OFF);
 }

@@ -149,7 +149,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="gui\D3D11StateSaver.h" />
     <ClInclude Include="gui\gui.h" />
     <ClInclude Include="memory\hooks.h" />
     <ClInclude Include="memory\tools\hde64.h" />
@@ -184,7 +183,6 @@
     <ClInclude Include="sdk\KeyValues\ValveKeyValues.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gui\D3D11StateSaver.cpp" />
     <ClCompile Include="gui\gui.cpp" />
     <ClCompile Include="memory\hooks.cpp" />
     <ClCompile Include="memory\tools\hook64.cpp" />

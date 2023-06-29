@@ -3,9 +3,9 @@
 #include <memory>
 
 #define MAX_ORIG_INSTRUCTIONS 40
-#define NUM_PRESERVE_STACK_QWORDS 16
+#define NUM_PRESERVE_STACK_QWORDS 18 // keep this an even number
 #define MAX_GATEWAY_SIZE_BYTES 512 // we will put the number of current page accessors at this location in the gateway
-#define OFFSET_STORE_REGS_AND_RETADDR_ON_STACK 16384 // offset of rsp where the original return address and registers are stored at, reserves 64KB
+#define OFFSET_STORE_REGS_AND_RETADDR_ON_STACK 32768 // offset of rsp where the original return address and registers are stored at
 #define NUM_STORED_REGISTERS 15
 
 extern BYTE absJmpNoRegister[];

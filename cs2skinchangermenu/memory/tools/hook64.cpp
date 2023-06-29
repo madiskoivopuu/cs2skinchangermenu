@@ -18,9 +18,7 @@ BYTE absCall[] = {
 };
 
 BYTE destPrepPrologue[] = {
-	// start storing registers and original return address somewhere up on our stack
-	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8 <- int, -8 since we want to store the return address exactly at offset OFFSET_STORE_REGS_AND_RETADDR_ON_STACK
-	0xFF, 0xB4, 0x24, 0x00, 0x00, 0x00, 0x00, // push qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8] <- -8 due to some weird rsp updating shit
+	// start storing registers except rsp
 	0x50, // push rax
 	0x53, // push rbx
 	0x51, // push rcx
@@ -37,23 +35,32 @@ BYTE destPrepPrologue[] = {
 	0x41, 0x56, // push r14
 	0x41, 0x57, // push r15
 
-	// replace the return address with our gateway epilogue start addy
-	0x48, 0x81, 0xC4, 0x00, 0x00, 0x00, 0x00, // add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
+	// subtract the required amount of space for the stack preservation
+	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, NUM_PRESERVE_STACK_QWORDS*8
+	// preserve variables used by movsq instruction, copy stack over to new location
+	0x56, // push rsi
+	0x57, // push rdi
+	0x51, // push rcx
+	0x48, 0x8D, 0xB4, 0x24, 0x00, 0x00, 0x00, 0x00, // lea rsi, [rsp + 24 + NUM_PRESERVE_STACK_QWORDS*8 + NUM_STORED_REGISTERS*8 + 8] <- +24 to skip over our preserved regs, +8 to skip over original ret addr
+	0x48, 0x8D, 0x7C, 0x24, 0x18, // lea rdi, [rsp+24]
+	0x48, 0xC7, 0xC1, 0x00, 0x00, 0x00, 0x00, // mov rcx, NUM_PRESERVE_STACK_QWORDS
+	0xF3, 0x48, 0xA5, // rep movsq
+	0x59, // pop rcx
+	0x5F, // pop rdi
+	0x5E, // pop rsi
+
+	// write new return address to the stack top
+	0x6A, 0x00, // push 0 <- replaced later by ret addr
 	0x50, // push rax
-	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, // movabs rax, 0x0000000000000000
+	0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov rax, NEW_RET_ADDR
 	0x48, 0x89, 0x44, 0x24, 0x08, // mov [rsp+8], rax
-	0x58 // pop rax
+	0x58 // pop rax*/
 };
 
 BYTE destEpilogue[] = {
-	// rsp will be higher by 8 bytes now due to ret, so we will compensate for it
-
-	// restore the original ret addr
-	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, 8 + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
-	0x48, 0x8B, 0x04, 0x24, // mov rax, [rsp]
-	0x48, 0x89, 0x84, 0x24, 0x00, 0x00, 0x00, 0x00, // mov qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK], rax
+	// return stack pointer back to our original addy
+	0x48, 0x81, 0xC4, 0x00, 0x00, 0x00, 0x10, // add rsp, NUM_PRESERVE_STACK_QWORDS*8 <- int
 	// restore registers
-	0x48, 0x81, 0xEC, 0x00, 0x00, 0x00, 0x00, // sub rsp, NUM_STORED_REGISTERS*8 <- int
 	0x41, 0x5F, // pop r15
 	0x41, 0x5E, // pop r14
 	0x41, 0x5D, // pop r13
@@ -69,9 +76,6 @@ BYTE destEpilogue[] = {
 	0x59, // pop rcx
 	0x5B, // pop rbx
 	0x58, // pop rax
-
-	// put stack pointer to the original return address
-	0x48, 0x81, 0xC4, 0x00, 0x00, 0x00, 0x10 // add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK
 };
 
 BYTE hookPageEnter[] = {
@@ -130,17 +134,19 @@ bool Hook::Delete() {
 /*
 * Formats the destination call prologue instructions to reset the manual stack alignment bool and if needed, restore the stack to is previous non 16-byte alignment.
 * @param opcodeStorage Location to store the formatted instructions at
-* @param gateway Pointer to the start of the gateway
+* @param newRetAddr Return address pointing to the next instruction after absolute jmp to destination
 */
-void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
+void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* newRetAddr) {
 	memcpy(opcodeStorage, destPrepPrologue, sizeof(destPrepPrologue));
 
-	*reinterpret_cast<int*>(opcodeStorage + 3) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK - 8; // RSP offset |  sub rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8 <- int
-	*reinterpret_cast<int*>(opcodeStorage + 10) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK - 8; // RSP offset to original ret addr | push qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK-8]
+	// set up new stack
+	*reinterpret_cast<int*>(opcodeStorage + 26) = NUM_PRESERVE_STACK_QWORDS*8; // sub rsp, NUM_PRESERVE_STACK_QWORDS*8;
 
-	*reinterpret_cast<int*>(opcodeStorage + 40) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS * 8; // RSP point stack to original loc, +8 since the last push will offset the register by 8 too high of the original pos | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 <- int
+	// stack copy setup
+	*reinterpret_cast<int*>(opcodeStorage + 37) = 24 + NUM_PRESERVE_STACK_QWORDS*8 + NUM_STORED_REGISTERS*8 + 8;// lea rsi, [rsp + 24 + NUM_PRESERVE_STACK_QWORDS*8 + NUM_STORED_REGISTERS*8]
+	*reinterpret_cast<int*>(opcodeStorage + 49) = NUM_PRESERVE_STACK_QWORDS; // mov rax, NUM_PRESERVE_STACK_QWORDS
 
-	*reinterpret_cast<BYTE**>(opcodeStorage + 47) = gateway + sizeof(hookPageEnter) + sizeof(destPrepPrologue) + sizeof(absJmpNoRegister);
+	*reinterpret_cast<BYTE**>(opcodeStorage + 64) = newRetAddr; // mov rax, NUM_PRESERVE_STACK_QWORDS
 }
 
 /*
@@ -150,11 +156,7 @@ void FormatDestinationPrologue(BYTE* opcodeStorage, BYTE* gateway) {
 void FormatDestinationEpilogue(BYTE* opcodeStorage) {
 	memcpy(opcodeStorage, destEpilogue, sizeof(destEpilogue));
 
-	*reinterpret_cast<int*>(opcodeStorage + 3) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + 8; // RSP offset to top of stack for our stored original ret addr | sub rsp, 8 + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <- int
-	*reinterpret_cast<int*>(opcodeStorage + 15) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP offset to the original/modified return address | mov qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK], rax
-
-	*reinterpret_cast<int*>(opcodeStorage + 22) = NUM_STORED_REGISTERS * 8; // RSP offset to our preserved regs | mov qword ptr [rsp + OFFSET_STORE_REGS_AND_RETADDR_ON_STACK], rax
-	*reinterpret_cast<int*>(opcodeStorage + 52) = OFFSET_STORE_REGS_AND_RETADDR_ON_STACK; // RSP point stack to original retaddr loc | add rsp, OFFSET_STORE_REGS_AND_RETADDR_ON_STACK + NUM_STORED_REGISTERS*8 + 8 <- int
+	*reinterpret_cast<int*>(opcodeStorage + 3) = NUM_PRESERVE_STACK_QWORDS*8; // sub rsp, NUM_PRESERVE_STACK_QWORDS*8 <- int
 
 }
 
@@ -309,7 +311,7 @@ std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destina
 
 	// 2. destination call preparation, prologue
 	BYTE destPrologueOpcodes[sizeof(destPrepPrologue)] = { 0 };
-	FormatDestinationPrologue(destPrologueOpcodes, gateway);
+	FormatDestinationPrologue(destPrologueOpcodes, gatewayInstructionPtr+sizeof(destPrepPrologue)+sizeof(absJmpNoRegister));
 	memcpy(gatewayInstructionPtr, destPrologueOpcodes, sizeof(destPrologueOpcodes));
 	gatewayInstructionPtr += sizeof(destPrologueOpcodes);
 
