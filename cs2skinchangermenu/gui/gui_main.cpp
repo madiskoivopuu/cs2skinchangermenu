@@ -13,7 +13,7 @@ namespace gui {
 }
 
 // Hook callback
-void OnPresentHookCalled(IDXGISwapChain* chain) {
+void DrawGUIFrame(IDXGISwapChain* chain) {
 	// initialization phase
 	if (!gui::isGuiInit) {
 		// actual device we want

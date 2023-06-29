@@ -130,7 +130,7 @@ void DestroyGUI() {
 }
 
 // Window Process callback
-static LRESULT CALLBACK WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT CALLBACK WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	//if (nk_d3d11_handle_event(wnd, msg, wparam, lparam))
 	//	return 1L;

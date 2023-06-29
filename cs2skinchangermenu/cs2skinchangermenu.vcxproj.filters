@@ -111,7 +111,7 @@
     <ClInclude Include="memory\hooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gui_main.h">
+    <ClInclude Include="gui\gui_main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -161,7 +161,7 @@
     <ClCompile Include="memory\hooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gui_main.cpp">
+    <ClCompile Include="gui\gui_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hooks.h"
-#include "gui/gui.h"
+#include "gui/gui_setup.h"
+#include "gui/gui_main.h"
 
 #include <iostream>
 
@@ -20,7 +21,7 @@ namespace hooks {
 /////////////////////////
 void HookPresent(IDXGISwapChain* chain, UINT SyncInterval, UINT Flags) {
 
-    OnPresentHookCalled(chain);
+    DrawGUIFrame(chain);
 
     return; // don't have to do magic here
 }
@@ -33,7 +34,7 @@ void HookPresent(IDXGISwapChain* chain, UINT SyncInterval, UINT Flags) {
 /////////////////////////
 bool InitializeHooks() {
     hooks::scPresentHook = CreateTrampHook64_Advanced(
-        reinterpret_cast<BYTE*>(VirtualFunction(swap_chain, 8)),
+        reinterpret_cast<BYTE*>(VirtualFunction(gui::swap_chain, 8)),
         reinterpret_cast<BYTE*>(&HookPresent)
     );
 
