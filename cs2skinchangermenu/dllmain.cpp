@@ -106,7 +106,6 @@ DWORD WINAPI Main(HMODULE hModule) {
 
     //std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
-    Sleep(8000);
     hooks::scPresentHook->Enable();
 
     //kv.data.keys["lang"].keys["tokens"];

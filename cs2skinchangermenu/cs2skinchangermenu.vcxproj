@@ -149,7 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="gui\gui.h" />
+    <ClInclude Include="gui\gui_setup.h" />
+    <ClInclude Include="gui_main.h" />
     <ClInclude Include="memory\hooks.h" />
     <ClInclude Include="memory\tools\hde64.h" />
     <ClInclude Include="memory\tools\hook64.h" />
@@ -183,7 +184,8 @@
     <ClInclude Include="sdk\KeyValues\ValveKeyValues.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gui\gui.cpp" />
+    <ClCompile Include="gui\gui_setup.cpp" />
+    <ClCompile Include="gui_main.cpp" />
     <ClCompile Include="memory\hooks.cpp" />
     <ClCompile Include="memory\tools\hook64.cpp" />
     <ClCompile Include="sdk\econ\CCStrike15ItemSystem.cpp" />

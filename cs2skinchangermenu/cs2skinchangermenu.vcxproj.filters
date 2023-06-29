@@ -87,7 +87,7 @@
     <ClInclude Include="sdk\econ\CEconItemSetDefinition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gui\gui.h">
+    <ClInclude Include="gui\gui_setup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nuklear-gui\nuklear.h">
@@ -109,6 +109,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="memory\hooks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gui_main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -149,13 +152,16 @@
     <ClCompile Include="sdk\KeyValues\ValveKeyValues.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gui\gui.cpp">
+    <ClCompile Include="gui\gui_setup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="memory\tools\hook64.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="memory\hooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
