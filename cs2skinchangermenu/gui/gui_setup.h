@@ -17,6 +17,7 @@ namespace gui {
 }
 
 
+void DestroyGUI();
 bool InitGUI();
 LRESULT CALLBACK WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam);
 void OnPresentHookCalled(IDXGISwapChain* chain);

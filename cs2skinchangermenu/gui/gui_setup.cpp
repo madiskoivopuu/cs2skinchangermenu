@@ -3,7 +3,6 @@
 // nuklear impl
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
-
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
@@ -13,6 +12,8 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_IMPLEMENTATION
 #define NK_D3D11_IMPLEMENTATION
+#define MAX_VERTEX_BUFFER 512 * 1024
+#define MAX_INDEX_BUFFER 128 * 1024
 #include "gui_setup.h"
 #include <iostream>
 

@@ -16,6 +16,8 @@
 #include <conio.h>
 
 int ExitRoutine(HMODULE hModule, FILE* f) {
+    DestroyGUI();
+
     fclose(f);
     FreeConsole();
     FreeLibraryAndExitThread(hModule, 0);
@@ -102,7 +104,7 @@ DWORD WINAPI Main(HMODULE hModule) {
             break;
     }
 
-    //hooks::scPresentHook->Disable();
+    hooks::scPresentHook->Disable();
 
     ExitRoutine(hModule, f);
     return 0;

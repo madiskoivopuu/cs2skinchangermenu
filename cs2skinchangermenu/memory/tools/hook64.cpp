@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <cmath>
 #include <memory>
+#include <chrono>
+#include <thread>
 
 BYTE absJmpNoRegister[] = {
 	0xFF, 0x25, 0x00, 0x00, 0x00, 0x00, // jmp [rip] 
@@ -101,7 +103,7 @@ Hook::Hook(BYTE* targetJmpPlacementLoc, BYTE* hookGatewayLoc, BYTE targetOrigina
 }
 
 Hook::~Hook() {
-	this->Delete();
+	//this->Delete();
 }
 
 // TODO:
@@ -125,8 +127,12 @@ void Hook::Disable() {
 bool Hook::Delete() {
 	this->Disable();
 
-	while (*reinterpret_cast<uint64_t*>(this->hookGatewayLoc + MAX_GATEWAY_SIZE_BYTES) != 0)
+	while (*reinterpret_cast<uint64_t*>(this->hookGatewayLoc + MAX_GATEWAY_SIZE_BYTES) != 0) {
+		std::this_thread::sleep_for(std::chrono::microseconds(10));
 		continue;
+	}
+
+	std::this_thread::sleep_for(std::chrono::microseconds(10));
 
 	return VirtualFree(this->hookGatewayLoc, 0, MEM_RELEASE);
 }

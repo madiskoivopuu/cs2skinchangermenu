@@ -114,6 +114,9 @@
     <ClInclude Include="gui\gui_main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gui\components\components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -162,6 +165,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\components\sidebar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

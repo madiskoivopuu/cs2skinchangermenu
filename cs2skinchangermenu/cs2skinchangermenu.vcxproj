@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="gui\components\components.h" />
     <ClInclude Include="gui\gui_setup.h" />
     <ClInclude Include="gui\gui_main.h" />
     <ClInclude Include="memory\hooks.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="sdk\KeyValues\ValveKeyValues.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="gui\components\sidebar.cpp" />
     <ClCompile Include="gui\gui_setup.cpp" />
     <ClCompile Include="gui\gui_main.cpp" />
     <ClCompile Include="memory\hooks.cpp" />
