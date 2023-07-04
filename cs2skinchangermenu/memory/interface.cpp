@@ -1,7 +1,10 @@
 #include "pch.h"
 
 #include "interface.h"
-#include "sdk/interfaces/CSource2Client.h"
+
+
+#include "memory/tools/patternscan.h"
+#include "patterns.h"
 
 #include <Windows.h>
 #include <cstdint>
@@ -10,6 +13,8 @@
 // interfaces extern definition
 namespace Interface {
 	CSource2Client* client = nullptr;
+	CGameEntitySystem* entities = nullptr;
+	CSchemaSystem* schema = nullptr;
 }
 
 void* CreateInterface(const char* moduleName, const char* interfaceName) {
@@ -33,8 +38,21 @@ void* CreateInterface(const char* moduleName, const char* interfaceName) {
 	return nullptr;
 }
 
+CGameEntitySystem* PatternScanForEntitySystem() {
+	uint8_t* instrPtr = reinterpret_cast<uint8_t*>(ScanPatternInModule("client.dll", PATTERN_ENTSYS_PTRPTR1, MASK_ENTSYS_PTRPTR1));
+	if (!instrPtr)
+		return nullptr;
+
+	// lea ..., g_pCCSPlayerController || we get the g_p... part
+	uint32_t offsetFromInstruction = *reinterpret_cast<uint32_t*>(instrPtr + OFFSETSTART_ENTSYS_PTRPTR1); // read 3 bytes from the start of scan to get the offset
+
+	return *reinterpret_cast<CGameEntitySystem**>(instrPtr + OFFSETEND_ENTSYS_PTRPTR1 + offsetFromInstruction); //+7 since the offset is from the end of instruction
+}
+
 bool LoadInterfaces() {
 	Interface::client = reinterpret_cast<CSource2Client*>(CreateInterface("client.dll", "Source2Client0"));
+	Interface::entities = PatternScanForEntitySystem();
+	Interface::schema = reinterpret_cast<CSchemaSystem*>(CreateInterface("schemasystem.dll", "SchemaSystem_"));
 
-	return Interface::client;
+	return Interface::client && Interface::schema;
 }

@@ -149,12 +149,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="globals.h" />
     <ClInclude Include="gui\components\components.h" />
     <ClInclude Include="gui\gui_setup.h" />
     <ClInclude Include="gui\gui_main.h" />
     <ClInclude Include="memory\hooks.h" />
     <ClInclude Include="memory\tools\hde64.h" />
     <ClInclude Include="memory\tools\hook64.h" />
+    <ClInclude Include="netvars\fnvhash.h" />
+    <ClInclude Include="netvars\netvars.h" />
+    <ClInclude Include="netvars\offsets.h" />
     <ClInclude Include="nuklear-gui\nuklear.h" />
     <ClInclude Include="nuklear-gui\nuklear_d3d11.h" />
     <ClInclude Include="nuklear-gui\nuklear_d3d11_pixel_shader.h" />
@@ -172,6 +176,21 @@
     <ClInclude Include="sdk\econ\CCStrike15ItemSchema.h" />
     <ClInclude Include="sdk\econ\CEconItemSetDefinition.h" />
     <ClInclude Include="sdk\econ\CPaintKit.h" />
+    <ClInclude Include="sdk\gameclasses\CAttributeList.h" />
+    <ClInclude Include="sdk\gameclasses\CCSPlayerController.h" />
+    <ClInclude Include="sdk\gameclasses\CCSPlayer_ViewModelServices.h" />
+    <ClInclude Include="sdk\gameclasses\CEconItemAttribute.h" />
+    <ClInclude Include="sdk\gameclasses\CEngineClient.h" />
+    <ClInclude Include="sdk\gameclasses\CGameEntitySystem.h" />
+    <ClInclude Include="sdk\gameclasses\CHandle.h" />
+    <ClInclude Include="sdk\gameclasses\CPlayer_WeaponServices.h" />
+    <ClInclude Include="sdk\gameclasses\C_AttributeContainer.h" />
+    <ClInclude Include="sdk\gameclasses\C_BaseViewModel.h" />
+    <ClInclude Include="sdk\gameclasses\C_CSPlayerPawn.h" />
+    <ClInclude Include="sdk\gameclasses\C_EconItemView.h" />
+    <ClInclude Include="sdk\gameclasses\C_ViewmodelWeapon.h" />
+    <ClInclude Include="sdk\gameclasses\C_WeaponCSBase.h" />
+    <ClInclude Include="sdk\gameclasses\EntitySpottedState_t.h" />
     <ClInclude Include="sdk\IMemAlloc.h" />
     <ClInclude Include="sdk\interfaces\CSource2Client.h" />
     <ClInclude Include="framework.h" />
@@ -180,16 +199,24 @@
     <ClInclude Include="memory\tools\OpcodePatcher.h" />
     <ClInclude Include="memory\tools\patternscan.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="sdk\schema.h" />
     <ClInclude Include="skin_changer\skins.h" />
     <ClInclude Include="skin_changer\SkinPreference.h" />
     <ClInclude Include="sdk\KeyValues\ValveKeyValues.h" />
+    <ClInclude Include="skin_changer\skins_cache.h" />
+    <ClInclude Include="skin_changer\TextureCache.h" />
+    <ClInclude Include="vpktool\InputStream.h" />
+    <ClInclude Include="vpktool\VPK.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="globals.cpp" />
     <ClCompile Include="gui\components\sidebar.cpp" />
     <ClCompile Include="gui\gui_setup.cpp" />
     <ClCompile Include="gui\gui_main.cpp" />
     <ClCompile Include="memory\hooks.cpp" />
     <ClCompile Include="memory\tools\hook64.cpp" />
+    <ClCompile Include="netvars\netvars.cpp" />
+    <ClCompile Include="netvars\offsets.cpp" />
     <ClCompile Include="sdk\econ\CCStrike15ItemSystem.cpp" />
     <ClCompile Include="memory\gamefuncs.cpp" />
     <ClCompile Include="memory\interface.cpp" />
@@ -207,6 +234,9 @@
     </ClCompile>
     <ClCompile Include="skin_changer\skins.cpp" />
     <ClCompile Include="sdk\KeyValues\ValveKeyValues.cpp" />
+    <ClCompile Include="skin_changer\skins_cache.cpp" />
+    <ClCompile Include="vpktool\InputStream.cpp" />
+    <ClCompile Include="vpktool\VPK.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

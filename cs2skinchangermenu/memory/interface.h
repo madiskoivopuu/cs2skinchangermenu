@@ -1,6 +1,14 @@
 #pragma once
 
-#include "sdk/interfaces/CSource2Client.h" // TODO: rename to source2client
+#include "sdk/interfaces/CSource2Client.h"
+#include "sdk/gameclasses/CGameEntitySystem.h"
+#include "sdk/schema.h"
+
+namespace Interface {
+	extern CSource2Client* client;
+	extern CGameEntitySystem* entities;
+	extern CSchemaSystem* schema;
+};
 
 // Used by Source internally to register classes.
 class InterfaceReg
@@ -10,10 +18,6 @@ public:
 	InstantiateInterfaceFn	m_CreateFn;
 	const char* m_pName;
 	InterfaceReg* m_pNext; // For the global list.
-};
-
-namespace Interface {
-	extern CSource2Client* client;
 };
 
 // Find a specific client class inside a .dll, nullptr if not found
