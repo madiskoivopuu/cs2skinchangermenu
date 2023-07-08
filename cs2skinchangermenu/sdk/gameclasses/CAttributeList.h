@@ -2,7 +2,7 @@
 
 #include "netvars/netvars.h"
 #include "sdk/CUtl/CUtlVector.h"
-#include "sdk/gameclasses/CEconItemAttribute.h"
+#include "sdk/econ/CEconItemAttribute.h"
 
 class CAttributeList {
 public:

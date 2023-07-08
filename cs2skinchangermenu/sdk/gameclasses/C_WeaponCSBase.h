@@ -25,6 +25,8 @@ public:
 	NETVAR(int32_t, m_nFallbackStatTrak, "client.dll!C_EconEntity->m_nFallbackStatTrak");
 
 	// skin changer stuff
+	OFFSET_PTR(void, m_pWeaponSecondVTable, offsets::m_pWeaponSecondVTable); // retarded compiler problems with using OFFSET() reference, it dereferences it thinking the vtable itself is the object.....
+	OFFSET(void*, m_ppMaterial, offsets::m_ppMaterial);
 	OFFSET(bool, m_bAllowSkinRegeneration, offsets::m_bAllowSkinRegeneration);
-	OFFSET(uintptr_t, m_pRegenCount, offsets::m_pRegenCount);
+	OFFSET(void*, m_pRegenCount, offsets::m_pRegenCount);
 };

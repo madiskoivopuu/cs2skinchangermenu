@@ -2,7 +2,8 @@
 
 #include <cstdint>
 #include "netvars/netvars.h"
-#include "CAttributeList.h"
+#include "sdk/gameclasses/CAttributeList.h"
+#include "sdk/gameclasses/CWeaponCSBaseVData.h"
 
 class C_EconItemView {
 public:
@@ -17,4 +18,8 @@ public:
 
 	NETVAR(CAttributeList, m_AttributeList, "client.dll!C_EconItemView->m_AttributeList");
 	NETVAR(CAttributeList, m_NetworkedDynamicAttributes, "client.dll!C_EconItemView->m_NetworkedDynamicAttributes");
+
+public:
+	CWeaponCSBaseVData* GetCSWeaponDataFromItem();
+	void SetAttributeValueByName(const char* name, float value);
 };

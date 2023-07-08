@@ -57,8 +57,8 @@ std::unordered_map<std::string, std::string> ReadEnglishTranslation() {
     return tokens.GetProperties();
 }
 
-void HookTestFn() {
-    return;
+void PreExitRoutine() {
+    RemoveHooks();
 }
 
 DWORD WINAPI Main(HMODULE hModule) {
@@ -77,13 +77,11 @@ DWORD WINAPI Main(HMODULE hModule) {
     CUtlMap<int, CPaintKit*> paintKits = schema->GetPaintKits();
     CUtlMap<char*, CEconItemSetDefinition> itemSets = schema->GetItemSets();
 
-    std::cout << (*globals::ppLocalPlayer)->m_hPlayerPawn().Get()->m_pWeaponServices()->m_hMyWeapons()[0].Get()->m_hOwnerEntity().Get() << std::endl;
-
     //LoadWeaponTextureThumbnails();
 
     //std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
-    //hooks::scPresentHook->Enable();
+    hooks::playerPawnCreateMoveHook->Enable();
 
     //kv.data.keys["lang"].keys["tokens"];
 
@@ -94,7 +92,7 @@ DWORD WINAPI Main(HMODULE hModule) {
             break;
     }
 
-    hooks::scPresentHook->Disable();
+    PreExitRoutine();
 
     ExitRoutine(hModule, f);
     return 0;

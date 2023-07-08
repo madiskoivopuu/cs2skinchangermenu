@@ -6,7 +6,9 @@
 namespace hooks {
 	using fIDXGISwapChain__Present = HRESULT(__stdcall*)(IDXGISwapChain*, UINT, UINT);
 	extern fIDXGISwapChain__Present oIDXGISwapChain__Present;
-	extern std::unique_ptr<Hook> scPresentHook;
+	extern std::unique_ptr<Hook> swapChainPresentHook;
+
+	extern std::unique_ptr<Hook> playerPawnCreateMoveHook;
 }
 
 constexpr void* VirtualFunction(void* thisptr, size_t index) noexcept
@@ -15,4 +17,5 @@ constexpr void* VirtualFunction(void* thisptr, size_t index) noexcept
 }
 
 bool InitializeHooks();
+void RemoveHooks();
 

@@ -2,7 +2,7 @@
 
 #include "netvars/netvars.h"
 
-#include "C_EconItemView.h"
+#include "sdk/econ/C_EconItemView.h"
 
 class C_AttributeContainer {
 public:

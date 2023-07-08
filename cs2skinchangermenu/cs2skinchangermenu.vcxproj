@@ -179,15 +179,16 @@
     <ClInclude Include="sdk\gameclasses\CAttributeList.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayerController.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayer_ViewModelServices.h" />
-    <ClInclude Include="sdk\gameclasses\CEconItemAttribute.h" />
+    <ClInclude Include="sdk\econ\CEconItemAttribute.h" />
     <ClInclude Include="sdk\gameclasses\CEngineClient.h" />
     <ClInclude Include="sdk\gameclasses\CGameEntitySystem.h" />
     <ClInclude Include="sdk\gameclasses\CHandle.h" />
     <ClInclude Include="sdk\gameclasses\CPlayer_WeaponServices.h" />
+    <ClInclude Include="sdk\gameclasses\CWeaponCSBaseVData.h" />
     <ClInclude Include="sdk\gameclasses\C_AttributeContainer.h" />
     <ClInclude Include="sdk\gameclasses\C_BaseViewModel.h" />
     <ClInclude Include="sdk\gameclasses\C_CSPlayerPawn.h" />
-    <ClInclude Include="sdk\gameclasses\C_EconItemView.h" />
+    <ClInclude Include="sdk\econ\C_EconItemView.h" />
     <ClInclude Include="sdk\gameclasses\C_ViewmodelWeapon.h" />
     <ClInclude Include="sdk\gameclasses\C_WeaponCSBase.h" />
     <ClInclude Include="sdk\gameclasses\EntitySpottedState_t.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="memory\gamefuncs.cpp" />
     <ClCompile Include="memory\interface.cpp" />
     <ClCompile Include="sdk\econ\CCStrike15ItemSchema.cpp" />
+    <ClCompile Include="sdk\econ\C_EconItemView.cpp" />
     <ClCompile Include="sdk\interfaces\CSource2Client.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="memory\tools\mem.cpp" />

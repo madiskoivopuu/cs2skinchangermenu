@@ -8,6 +8,7 @@ class Sticker {
 };
 
 class SkinPreference {
+public:
 	int paintKitID;
 	int seed;
 	float wearValue;

@@ -153,7 +153,7 @@
     <ClInclude Include="sdk\gameclasses\C_CSPlayerPawn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sdk\gameclasses\C_EconItemView.h">
+    <ClInclude Include="sdk\econ\C_EconItemView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk\gameclasses\C_WeaponCSBase.h">
@@ -171,7 +171,7 @@
     <ClInclude Include="sdk\gameclasses\CCSPlayerController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sdk\gameclasses\CEconItemAttribute.h">
+    <ClInclude Include="sdk\econ\CEconItemAttribute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk\gameclasses\CEngineClient.h">
@@ -187,6 +187,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk\gameclasses\EntitySpottedState_t.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\gameclasses\CWeaponCSBaseVData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -258,6 +261,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="netvars\offsets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sdk\econ\C_EconItemView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
