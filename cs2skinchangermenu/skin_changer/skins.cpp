@@ -74,10 +74,6 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	if (weapon->m_hOwnerEntity().GetEnt() != localPawn)
 		return false;
 
-	// check if the weapon doesn't have a material set, then we should update
-	if (weapon->m_ppMaterial() == nullptr)
-		return true;
-
 	// check if there are no attributes even though we have a skin set
 	if (weapon->m_AttributeManager().m_Item().m_AttributeList().m_Attributes().Count() == 0)
 		return true;
@@ -112,22 +108,6 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	return false;
 }
 
-// NOT NEEDED ANYMORE
-// UJpdates the material pointer and regen count pointer for the weapon if needed
-void UpdateMatsIfNeeded(C_WeaponCSBase* weapon) {
-	if (!weapon->m_ppMaterial() || !weapon->m_pRegenCount()) {
-		CWeaponCSBaseVData* vdata = weapon->m_AttributeManager().m_Item().GetCSWeaponDataFromItem();
-		int slot = vdata->m_GearSlot();
-		if (weapon->m_AttributeManager().m_Item().m_iItemDefinitionIndex() == 31) // weapon_taser
-			slot += 1;
-
-		// set material and regen count ptr
-		std::tuple<void*, void*> matAndRegenPtr = skins::wepMaterialPointers[slot];
-		//weapon->m_ppMaterial() = std::get<0>(matAndRegenPtr);
-		//weapon->m_pRegenCount() = std::get<1>(matAndRegenPtr);
-	}
-}
-
 // Sets the stattrak on our weapon depending whether it is enabled or not, and cached or not
 void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
@@ -138,7 +118,7 @@ void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater"), static_cast<float>(pref.stattrakKills));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater score type"), 0.0f);
 
-	Sleep(100);
+	//Sleep(100);
 	if (weapon->m_hStattrakEntity().IsInvalid())
 		fn::SpawnAndSetStattrakEnt(&weapon->m_hStattrakEntity());
 
@@ -154,7 +134,7 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref.wearValue);
 	SetStattrak(weapon, pref);
 
-
+	std::cout << weapon << std::endl;
 	// TODO: add stattrak and nametag attachments later
 	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
 	fn::RegenerateWeaponSkin(weapon);
@@ -187,7 +167,6 @@ void ApplySkins() {
 		if (!ShouldUpdateSkin(pawn, weapon))
 			return;
 
-		//UpdateMatsIfNeeded(weapon);
 		SetAndUpdateSkin(viewModel, weapon);
 	}
 }

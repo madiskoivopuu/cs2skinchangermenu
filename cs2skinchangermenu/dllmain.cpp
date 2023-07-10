@@ -83,13 +83,13 @@ DWORD WINAPI Main(HMODULE hModule) {
     //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
 
     //hooks::swapChainPresentHook->Enable();
-    //hooks::playerPawnCreateMoveHook->Enable();
+    hooks::playerPawnCreateMoveHook->Enable();
     //hooks::engineFrameBoundary->Enable();
 
     //kv.data.keys["lang"].keys["tokens"];
 
     while (true) {
-        ApplySkinsCallback();
+        //ApplySkinsCallback();
         Sleep(1);
 
         if (GetAsyncKeyState(VK_END) & 1)
