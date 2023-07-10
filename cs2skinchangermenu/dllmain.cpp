@@ -81,12 +81,16 @@ DWORD WINAPI Main(HMODULE hModule) {
 
     //std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
-    hooks::playerPawnCreateMoveHook->Enable();
+
+    //hooks::swapChainPresentHook->Enable();
+    //hooks::playerPawnCreateMoveHook->Enable();
+    //hooks::engineFrameBoundary->Enable();
 
     //kv.data.keys["lang"].keys["tokens"];
 
     while (true) {
-        Sleep(10);
+        ApplySkinsCallback();
+        Sleep(1);
 
         if (GetAsyncKeyState(VK_END) & 1)
             break;

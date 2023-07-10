@@ -91,7 +91,6 @@ BYTE hookPageLeave[] = {
 
 static_assert(sizeof(destPrepPrologue) + sizeof(absCall) + sizeof(destEpilogue) + MAX_ORIG_INSTRUCTIONS + sizeof(hookPageLeave) + sizeof(absJmpNoRegister) <= MAX_GATEWAY_SIZE_BYTES, "increase gateway size");
 static_assert(MAX_GATEWAY_SIZE_BYTES <= INT32_MAX, "gateway size too large");
-static_assert(OFFSET_STORE_REGS_AND_RETADDR_ON_STACK <= INT32_MAX, "stack original return address storage offset too large, you will point out of stack");
 
 Hook::Hook(BYTE* targetJmpPlacementLoc, BYTE* hookGatewayLoc, BYTE targetOriginalOpcodes[MAX_ORIG_INSTRUCTIONS], int numOriginalOpcodes) {
 	this->targetJmpPlacementLoc = targetJmpPlacementLoc;
@@ -284,8 +283,9 @@ BYTE* FindGoodHookPlacementLoc(BYTE* targetFunc) {
 
 // Creates a hook inside our target function without interfereing with the target function's work.
 // This means that even though our destination function will receive the target function's arguments, we will not be able to modify anything inside of the target function (including return value etc)
-std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destinationFunc) {
+std::unique_ptr<Hook> CreateTrampHook64_Advanced(BYTE* targetFunc, BYTE* destinationFunc, int offset) {
 	targetFunc = FindGoodHookPlacementLoc(targetFunc);
+	targetFunc += offset;
 	
 	int offsetValidOpcode = AbsJmpNumBytesToSave(targetFunc);
 	if (offsetValidOpcode == -1)

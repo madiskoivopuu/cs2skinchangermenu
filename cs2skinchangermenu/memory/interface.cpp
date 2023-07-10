@@ -54,5 +54,5 @@ bool LoadInterfaces() {
 	Interface::entities = PatternScanForEntitySystem();
 	Interface::schema = reinterpret_cast<CSchemaSystem*>(CreateInterface("schemasystem.dll", "SchemaSystem_"));
 
-	return Interface::client && Interface::schema;
+	return Interface::client && Interface::entities && Interface::schema;
 }

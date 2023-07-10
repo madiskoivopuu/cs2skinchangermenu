@@ -12,6 +12,8 @@ public:
 	int paintKitID;
 	int seed;
 	float wearValue;
+
+	bool useStattrak;
 	int stattrakKills;
 
 	// TODO: add stickers in the future

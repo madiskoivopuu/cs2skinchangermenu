@@ -186,7 +186,7 @@
     <ClInclude Include="sdk\gameclasses\CPlayer_WeaponServices.h" />
     <ClInclude Include="sdk\gameclasses\CWeaponCSBaseVData.h" />
     <ClInclude Include="sdk\gameclasses\C_AttributeContainer.h" />
-    <ClInclude Include="sdk\gameclasses\C_BaseViewModel.h" />
+    <ClInclude Include="sdk\gameclasses\C_CSGOViewModel.h" />
     <ClInclude Include="sdk\gameclasses\C_CSPlayerPawn.h" />
     <ClInclude Include="sdk\econ\C_EconItemView.h" />
     <ClInclude Include="sdk\gameclasses\C_ViewmodelWeapon.h" />

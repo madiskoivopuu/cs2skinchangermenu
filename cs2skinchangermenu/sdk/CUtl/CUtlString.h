@@ -4,7 +4,7 @@
 
 class CUtlString {
 public:
-    const char* Get() {
+    const char* GetEnt() {
         return reinterpret_cast<const char*>(m_Memory.m_pMemory);
     }
 

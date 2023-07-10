@@ -147,7 +147,7 @@
     <ClInclude Include="sdk\gameclasses\C_AttributeContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sdk\gameclasses\C_BaseViewModel.h">
+    <ClInclude Include="sdk\gameclasses\C_CSGOViewModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk\gameclasses\C_CSPlayerPawn.h">

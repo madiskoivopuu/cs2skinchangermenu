@@ -8,7 +8,7 @@
 // too lazy
 namespace Virtual {
     template <typename T>
-    __forceinline T Get(void* instance, const unsigned int index) {
+    __forceinline T GetEnt(void* instance, const unsigned int index) {
         return (*static_cast<T**>(instance))[index];
     }
 
@@ -26,19 +26,19 @@ namespace Virtual {
 class IMemAlloc {
 public:
     void* Alloc(size_t size) {
-        return Virtual::Get<void* (__thiscall*)(IMemAlloc*, size_t)>(this, 1)(this, size);
+        return Virtual::GetEnt<void* (__thiscall*)(IMemAlloc*, size_t)>(this, 1)(this, size);
     }
 
     void* ReAlloc(const void* p, size_t size) {
-        return Virtual::Get<void* (__thiscall*)(IMemAlloc*, const void*, size_t)>(this, 3)(this, p, size);
+        return Virtual::GetEnt<void* (__thiscall*)(IMemAlloc*, const void*, size_t)>(this, 3)(this, p, size);
     }
 
     void Free(const void* p) {
-        return Virtual::Get<void(__thiscall*)(IMemAlloc*, const void*)>(this, 5)(this, p);
+        return Virtual::GetEnt<void(__thiscall*)(IMemAlloc*, const void*)>(this, 5)(this, p);
     }
 
     size_t GetSize(const void* p) {
-        return Virtual::Get<size_t(__thiscall*)(IMemAlloc*, const void*)>(this, 21)(this, p);
+        return Virtual::GetEnt<size_t(__thiscall*)(IMemAlloc*, const void*)>(this, 21)(this, p);
     }
 };
 

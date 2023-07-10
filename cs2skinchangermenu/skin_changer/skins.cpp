@@ -14,14 +14,18 @@
 
 namespace skins {
 	std::array<std::tuple<void*, void*>, 4> wepMaterialPointers;
+	std::array<int, 4> stattrakAttachmentHandles = { -1 };
 	std::unordered_map<uint32_t, SkinPreference> loadout = { 
 		// TODO: remove
 		{
-			7, 
+			4, 
 			SkinPreference{
 				879,
 				0,
-				0.10f
+				0.10f,
+
+				true,
+				11
 			}
 		}
 	};
@@ -58,12 +62,16 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	if (skins::loadout.find(itemDefIndex) == skins::loadout.end()) // skin preference not set
 		return false;
 
+	// if the weapon doesn't have vdata set then we do not want to update, as some of the following functions need vdata
+	if (weapon->m_pWeaponVData() == nullptr)
+		return false;
+
 	// ignore grenades and anything higher than slot 2
 	if (weapon->m_AttributeManager().m_Item().GetCSWeaponDataFromItem()->m_GearSlot() > 2)
 		return false;
 
 	// check if weapon is owned by someone else
-	if (weapon->m_hOwnerEntity().Get() != localPawn)
+	if (weapon->m_hOwnerEntity().GetEnt() != localPawn)
 		return false;
 
 	// check if the weapon doesn't have a material set, then we should update
@@ -86,9 +94,19 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 		// float
 		if (attr.m_iAttributeDefinitionIndex() == 8 && attr.m_flValue() != skinPref.wearValue)
 			return true;
+		// kill eater aka stattrak counter
+		if (attr.m_iAttributeDefinitionIndex() == 80 && attr.m_flValue() != static_cast<float>(skinPref.stattrakKills))
+			return true;
 	}
 
-	// TODO: check for nametag, stattrak
+	// check for stattrak add or removal
+	if (skinPref.useStattrak && weapon->m_hStattrakEntity().IsInvalid())
+		return true;
+
+	if (!skinPref.useStattrak && !weapon->m_hStattrakEntity().IsInvalid())
+		return true;
+
+	// TODO: nametag change/removal/add
 	// TODO: check for sticker changes
 
 	return false;
@@ -109,19 +127,47 @@ void UpdateMatsIfNeeded(C_WeaponCSBase* weapon) {
 	}
 }
 
+// Sets the stattrak on our weapon depending whether it is enabled or not, and cached or not
+void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
+	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
+
+	if (!pref.useStattrak)
+		return weapon->m_hStattrakEntity().Set(-1);
+
+	CWeaponCSBaseVData* vdata = weapon->m_AttributeManager().m_Item().GetCSWeaponDataFromItem();
+	int slot = vdata->m_GearSlot();
+	if (weapon->m_AttributeManager().m_Item().m_iItemDefinitionIndex() == 31) // weapon_taser
+		slot += 1;
+
+	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater"), static_cast<float>(pref.stattrakKills));
+	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater score type"), 0.0f);
+
+	if (weapon->m_hStattrakEntity().IsInvalid()) {
+		int cachedStattrakHandle = skins::stattrakAttachmentHandles[slot];
+		if (cachedStattrakHandle != -1 && Interface::entities->GetFromEntityList<void>(cachedStattrakHandle) != nullptr)
+			weapon->m_hStattrakEntity().Set(skins::stattrakAttachmentHandles[slot]);
+		else {
+			fn::SpawnAndSetStattrakEnt(&weapon->m_hStattrakEntity());
+			skins::stattrakAttachmentHandles[slot] = weapon->m_hStattrakEntity().Get();
+		}
+	}
+}
+
 // Adds all necessary attributes etc to the weapon & forcefully updates its skin
-void SetAndUpdateSkin(C_WeaponCSBase* weapon) {
+void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
 	SkinPreference pref = skins::loadout.at(weaponEconItem.m_iItemDefinitionIndex());
 
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture prefab"), static_cast<float>(pref.paintKitID));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture seed"), static_cast<float>(pref.seed));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref.wearValue);
+	SetStattrak(weapon, pref);
+
 
 	// TODO: add stattrak and nametag attachments later
-
 	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
-	//fn::RegenerateWeaponSkin(weapon);
+	fn::RegenerateWeaponSkin(weapon);
+	fn::UpdateViewmodelAttachments(viewModel, weapon);
 }
 
 // actual skin changer logic
@@ -130,21 +176,23 @@ void ApplySkins() {
 	if (!localPlayer)
 		return;
 
-	C_CSPlayerPawn* pawn = localPlayer->m_hPlayerPawn().Get();
+	C_CSPlayerPawn* pawn = localPlayer->m_hPlayerPawn().GetEnt();
 	if (!pawn) 
 		return;
 	
 	CPlayer_WeaponServices* wepServices = pawn->m_pWeaponServices();
 	if (!wepServices)
 		return;
+
+	C_CSGOViewModel* viewModel = pawn->m_pViewModelServices()->m_hViewModel().GetEnt();
 	
 	for (int wepNr = 0; wepNr < wepServices->m_hMyWeapons().Count(); wepNr++) {
-		C_WeaponCSBase* weapon = wepServices->m_hMyWeapons()[wepNr].Get();
+		C_WeaponCSBase* weapon = wepServices->m_hMyWeapons()[wepNr].GetEnt();
 		if (!ShouldUpdateSkin(pawn, weapon))
 			continue;
 
 		UpdateMatsIfNeeded(weapon);
-		SetAndUpdateSkin(weapon);
+		SetAndUpdateSkin(viewModel, weapon);
 	}
 
 }

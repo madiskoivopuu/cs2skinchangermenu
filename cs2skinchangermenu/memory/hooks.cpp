@@ -28,16 +28,12 @@ namespace hooks {
 //
 /////////////////////////
 void HookPresent(IDXGISwapChain* chain, UINT SyncInterval, UINT Flags) {
-
     DrawGUIFrame(chain);
-
-    return; // don't have to do magic here
 }
 
 void HookPlayerPawn_CreateMove(C_CSPlayerPawn* pawn, void* pUserCMD, void* pUserCMDCopy) {
     ApplySkinsCallback();
 }
-
 
 /////////////////////////
 // 
@@ -48,6 +44,7 @@ bool InitializeHooks() {
     hooks::swapChainPresentHook = CreateTrampHook64_Advanced(
         reinterpret_cast<BYTE*>(VirtualFunction(gui::swap_chain, 8)),
         reinterpret_cast<BYTE*>(&HookPresent)
+        //reinterpret_cast<BYTE**>(&hooks::oIDXGISwapChain__Present);
     );
 
     void* funcptr = ScanPatternInModule("client.dll", PATTERN_PLAYERPAWNCREATEMOVE_PTR, MASK_PLAYERPAWNCREATEMOVE_PTR);

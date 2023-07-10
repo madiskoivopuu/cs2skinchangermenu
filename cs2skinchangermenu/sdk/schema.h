@@ -272,31 +272,31 @@ private:
 class CSchemaSystemTypeScope {
 public:
     CSchemaClassInfo* FindDeclaredClass(const char* class_name) {
-        return Virtual::Get<CSchemaClassInfo* (__thiscall*)(void*, const char*)>(this, 2)(this, class_name);
+        return Virtual::GetEnt<CSchemaClassInfo* (__thiscall*)(void*, const char*)>(this, 2)(this, class_name);
     }
 
     CSchemaEnumBinding* FindDeclaredEnum(const char* name) {
-        return Virtual::Get<CSchemaEnumBinding* (__thiscall*)(void*, const char*)>(this, 3)(this, name);
+        return Virtual::GetEnt<CSchemaEnumBinding* (__thiscall*)(void*, const char*)>(this, 3)(this, name);
     }
 
     CSchemaType* FindSchemaTypeByName(const char* name, std::uintptr_t* schema) {
-        return Virtual::Get<CSchemaType* (__thiscall*)(void*, const char*, std::uintptr_t*)>(this, 4)(this, name, schema);
+        return Virtual::GetEnt<CSchemaType* (__thiscall*)(void*, const char*, std::uintptr_t*)>(this, 4)(this, name, schema);
     }
 
     CSchemaType* FindTypeDeclaredClass(const char* name) {
-        return Virtual::Get<CSchemaType* (__thiscall*)(void*, const char*)>(this, 5)(this, name);
+        return Virtual::GetEnt<CSchemaType* (__thiscall*)(void*, const char*)>(this, 5)(this, name);
     }
 
     CSchemaType* FindTypeDeclaredEnum(const char* name) {
-        return Virtual::Get<CSchemaType* (__thiscall*)(void*, const char*)>(this, 6)(this, name);
+        return Virtual::GetEnt<CSchemaType* (__thiscall*)(void*, const char*)>(this, 6)(this, name);
     }
 
     CSchemaClassBinding* FindRawClassBinding(const char* name) {
-        return Virtual::Get<CSchemaClassBinding* (__thiscall*)(void*, const char*)>(this, 7)(this, name);
+        return Virtual::GetEnt<CSchemaClassBinding* (__thiscall*)(void*, const char*)>(this, 7)(this, name);
     }
 
     CSchemaEnumBinding* FindRawEnumBinding(const char* name) {
-        return Virtual::Get<CSchemaEnumBinding* (__thiscall*)(void*, const char*)>(this, 8)(this, name);
+        return Virtual::GetEnt<CSchemaEnumBinding* (__thiscall*)(void*, const char*)>(this, 8)(this, name);
     }
 
     std::string_view GetScopeName() {
@@ -317,11 +317,11 @@ private:
 class CSchemaSystem {
 public:
     CSchemaSystemTypeScope* GlobalTypeScope(void) {
-        return Virtual::Get<CSchemaSystemTypeScope* (__thiscall*)(void*)>(this, 11)(this);
+        return Virtual::GetEnt<CSchemaSystemTypeScope* (__thiscall*)(void*)>(this, 11)(this);
     }
 
     CSchemaSystemTypeScope* FindTypeScopeForModule(const char* m_module_name) {
-        return Virtual::Get<CSchemaSystemTypeScope* (__thiscall*)(void*, const char*)>(this, 13)(this, m_module_name);
+        return Virtual::GetEnt<CSchemaSystemTypeScope* (__thiscall*)(void*, const char*)>(this, 13)(this, m_module_name);
     }
 
     char pad_0x0000[SCHEMASYSTEM_TYPE_SCOPES_OFFSET]; // 0x0000

@@ -24,8 +24,9 @@ public:
 			return nullptr;
 
 		// valve seems to be doing a check at this offset to see if controller idx == index
-		if ((*reinterpret_cast<int*>(pEntityPtr + 16) & 0x7FFF) != entityIdxInBucket)
-			return nullptr;
+		// disabled it since these checks seem to differ per entity type
+		//if ((*reinterpret_cast<int*>(pEntityPtr + 16) & 0x7FFF) != entityIdxInBucket)
+		//	return nullptr;
 
 		T* entity = *reinterpret_cast<T**>(pEntityPtr);
 		return entity;

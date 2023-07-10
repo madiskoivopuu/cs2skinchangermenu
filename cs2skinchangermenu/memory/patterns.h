@@ -14,6 +14,7 @@ constexpr auto MASK_ENTSYS_PTRPTR1 = "xxx????xxxxx";
 constexpr auto OFFSETSTART_ENTSYS_PTRPTR1 = 3;
 constexpr auto OFFSETEND_ENTSYS_PTRPTR1 = 7;
 
+// !! Weapons do have their vdata pointer somewhere close to offset 0x360
 // GetCSWeaponDataFromItem
 // found by string:   FX_FireBullets: GetCSWeaponDataFromItem failed for weapon %s\n
 // go up to the matching if check to find it
@@ -31,6 +32,19 @@ constexpr auto OFFSETEND_LOCALPLAYER_PTRPTR1 = 3 + 7;
 // player pawn call is above a lot of if checks with |= assignments
 constexpr auto PATTERN_PLAYERPAWNCREATEMOVE_PTR = "\x48\x89\x5c\x24\x00\x57\x48\x83\xec\x00\x8b\x42\x00\x48\x8b\xda\x48\xc1\xe8";
 constexpr auto MASK_PLAYERPAWNCREATEMOVE_PTR = "xxxx?xxxx?xx?xxxxxx";
+
+// UpdateViewmodelStattrakAttachments(C_CSGOViewModel*, C_Weapon*)
+// found by string in client.dll: CEntitySpawner<class C_ViewmodelAttachmentModel>::Spawn
+// found by: cheat engine looking what accesses the address where m_hStattrakAttachment is
+constexpr auto PATTERN_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR = "\x48\x89\x5c\x24\x00\x55\x56\x57\x41\x55\x41\x56\x48\x8d\x6c\x24 ";
+constexpr auto MASK_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR = "xxxx?xxxxxxxxxxx";
+
+// SpawnAndSetStattrakAttachment(m_hStattrakAttachment*)
+// found by string: CEntitySpawner<class C_WorldModelStattrak>::Spawn
+// found by string: weapons/models/shared/stattrak/stattrak_module.vmdl
+// preferably two of these strings in the same func
+constexpr auto PATTERN_SPAWNSETSTATTRAK_PTR = "\x4c\x8b\xdc\x55\x41\x55\x49\x8d\x6b";
+constexpr auto MASK_SPAWNSETSTATTRAK_PTR = "xxxxxxxxx";
 
 // ::SetAttributeValueByName(C_EconItemView*, char* name, float val)
 // found by string: set item texture prefab

@@ -10,7 +10,9 @@ using fGetCCStrike15ItemSystem = CCStrike15ItemSystem* (__fastcall*)(); // CSour
 using fGetCSWeaponDataFromItem = CWeaponCSBaseVData* (__fastcall*)(C_EconItemView*);
 using fRegenerateWeaponSkin = void (__fastcall*)(C_WeaponCSBase*);
 using fAllowSkinRegenForWeapon = void (__fastcall*)(void*, bool);
-using fCEconItemView__SetAttributeValueByName = void(__fastcall*)(C_EconItemView*, const char*, float);
+using fCEconItemView__SetAttributeValueByName = void (__fastcall*)(C_EconItemView*, const char*, float);
+using fSpawnAndSetStattrakEnt = void (__fastcall*)(void*); // 1st argument is m_hStattrakAttachment*
+using fUpdateViewmodelAttachments = void(__fastcall*)(void*, C_WeaponCSBase*); // 1st argument is C_CSGOViewModel*
 
 namespace fn {
 	extern fGetCCStrike15ItemSystem CSource2Client__GetCCStrike15ItemSystem;
@@ -18,6 +20,8 @@ namespace fn {
 	extern fRegenerateWeaponSkin RegenerateWeaponSkin;
 	extern fAllowSkinRegenForWeapon AllowSkinRegenForWeapon;
 	extern fCEconItemView__SetAttributeValueByName CEconItemView__SetAttributeValueByName;
+	extern fSpawnAndSetStattrakEnt SpawnAndSetStattrakEnt;
+	extern fUpdateViewmodelAttachments UpdateViewmodelAttachments;
 }
 
 bool InitializeFunctions();

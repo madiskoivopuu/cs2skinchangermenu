@@ -9,6 +9,8 @@ namespace fn {
 	fRegenerateWeaponSkin RegenerateWeaponSkin = nullptr;
 	fAllowSkinRegenForWeapon AllowSkinRegenForWeapon = nullptr;
 	fCEconItemView__SetAttributeValueByName CEconItemView__SetAttributeValueByName = nullptr;
+	fSpawnAndSetStattrakEnt SpawnAndSetStattrakEnt = nullptr;
+	fUpdateViewmodelAttachments UpdateViewmodelAttachments = nullptr;
 }
 
 void InitGetCEconItemSystem() {
@@ -44,11 +46,27 @@ void InitSetAttribValueByName() {
 	fn::CEconItemView__SetAttributeValueByName = reinterpret_cast<fCEconItemView__SetAttributeValueByName>(funcptr);
 }
 
+void InitSkinAttachmentFunctions() {
+	void* funcptr = ScanPatternInModule("client.dll", PATTERN_SPAWNSETSTATTRAK_PTR, MASK_SPAWNSETSTATTRAK_PTR);
+	if (!funcptr)
+		return;
+
+	fn::SpawnAndSetStattrakEnt = (fSpawnAndSetStattrakEnt)funcptr;
+
+	funcptr = ScanPatternInModule("client.dll", PATTERN_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR, MASK_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR);
+	if (!funcptr)
+		return;
+
+	fn::UpdateViewmodelAttachments = (fUpdateViewmodelAttachments)funcptr;
+}
+
 bool InitializeFunctions() {
 	InitGetCEconItemSystem();
 	InitSetAttribValueByName();
 	InitGetCSWeaponDataFromItem();
 	InitSkinFunctions();
+	InitSkinAttachmentFunctions();
 
-	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && fn::RegenerateWeaponSkin && fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName;
+	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && fn::RegenerateWeaponSkin && fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName
+		&& fn::UpdateViewmodelAttachments && fn::SpawnAndSetStattrakEnt;
 }
