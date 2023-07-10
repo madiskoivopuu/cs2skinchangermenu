@@ -14,7 +14,7 @@
 
 namespace skins {
 	std::array<std::tuple<void*, void*>, 4> wepMaterialPointers;
-	std::array<int, 4> stattrakAttachmentHandles = { -1 };
+
 	std::unordered_map<uint32_t, SkinPreference> loadout = { 
 		// TODO: remove
 		{
@@ -67,7 +67,7 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 		return false;
 
 	// ignore grenades and anything higher than slot 2
-	if (weapon->m_AttributeManager().m_Item().GetCSWeaponDataFromItem()->m_GearSlot() > 2)
+	if (weapon->m_pWeaponVData()->m_GearSlot() > 2)
 		return false;
 
 	// check if weapon is owned by someone else
@@ -112,6 +112,7 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	return false;
 }
 
+// NOT NEEDED ANYMORE
 // UJpdates the material pointer and regen count pointer for the weapon if needed
 void UpdateMatsIfNeeded(C_WeaponCSBase* weapon) {
 	if (!weapon->m_ppMaterial() || !weapon->m_pRegenCount()) {
@@ -122,8 +123,8 @@ void UpdateMatsIfNeeded(C_WeaponCSBase* weapon) {
 
 		// set material and regen count ptr
 		std::tuple<void*, void*> matAndRegenPtr = skins::wepMaterialPointers[slot];
-		weapon->m_ppMaterial() = std::get<0>(matAndRegenPtr);
-		weapon->m_pRegenCount() = std::get<1>(matAndRegenPtr);
+		//weapon->m_ppMaterial() = std::get<0>(matAndRegenPtr);
+		//weapon->m_pRegenCount() = std::get<1>(matAndRegenPtr);
 	}
 }
 
@@ -134,23 +135,13 @@ void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
 	if (!pref.useStattrak)
 		return weapon->m_hStattrakEntity().Set(-1);
 
-	CWeaponCSBaseVData* vdata = weapon->m_AttributeManager().m_Item().GetCSWeaponDataFromItem();
-	int slot = vdata->m_GearSlot();
-	if (weapon->m_AttributeManager().m_Item().m_iItemDefinitionIndex() == 31) // weapon_taser
-		slot += 1;
-
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater"), static_cast<float>(pref.stattrakKills));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater score type"), 0.0f);
 
-	if (weapon->m_hStattrakEntity().IsInvalid()) {
-		int cachedStattrakHandle = skins::stattrakAttachmentHandles[slot];
-		if (cachedStattrakHandle != -1 && Interface::entities->GetFromEntityList<void>(cachedStattrakHandle) != nullptr)
-			weapon->m_hStattrakEntity().Set(skins::stattrakAttachmentHandles[slot]);
-		else {
-			fn::SpawnAndSetStattrakEnt(&weapon->m_hStattrakEntity());
-			skins::stattrakAttachmentHandles[slot] = weapon->m_hStattrakEntity().Get();
-		}
-	}
+	Sleep(100);
+	if (weapon->m_hStattrakEntity().IsInvalid())
+		fn::SpawnAndSetStattrakEnt(&weapon->m_hStattrakEntity());
+
 }
 
 // Adds all necessary attributes etc to the weapon & forcefully updates its skin
@@ -176,6 +167,9 @@ void ApplySkins() {
 	if (!localPlayer)
 		return;
 
+	if (!localPlayer->m_bPawnIsAlive())
+		return;
+
 	C_CSPlayerPawn* pawn = localPlayer->m_hPlayerPawn().GetEnt();
 	if (!pawn) 
 		return;
@@ -185,16 +179,17 @@ void ApplySkins() {
 		return;
 
 	C_CSGOViewModel* viewModel = pawn->m_pViewModelServices()->m_hViewModel().GetEnt();
+	if (!viewModel)
+		return;
 	
-	for (int wepNr = 0; wepNr < wepServices->m_hMyWeapons().Count(); wepNr++) {
-		C_WeaponCSBase* weapon = wepServices->m_hMyWeapons()[wepNr].GetEnt();
+	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
+	if(weapon != nullptr) {
 		if (!ShouldUpdateSkin(pawn, weapon))
-			continue;
+			return;
 
-		UpdateMatsIfNeeded(weapon);
+		//UpdateMatsIfNeeded(weapon);
 		SetAndUpdateSkin(viewModel, weapon);
 	}
-
 }
 
 // called for every CreateMove
