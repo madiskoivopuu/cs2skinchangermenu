@@ -16,7 +16,8 @@ public:
 	bool useStattrak;
 	int stattrakKills;
 
+	char nametag[64];
+
 	// TODO: add stickers in the future
 	std::array<Sticker, 4> stickers;
-	char nametag[20];
 };

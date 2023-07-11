@@ -13,12 +13,23 @@
 #include <iostream>
 
 namespace skins {
-	std::array<std::tuple<void*, void*>, 4> wepMaterialPointers;
-
+	bool regenViewmodel = false;
 	std::unordered_map<uint32_t, SkinPreference> loadout = { 
 		// TODO: remove
 		{
 			4, 
+			SkinPreference{
+				879,
+				0,
+				0.10f,
+
+				false,
+				11,
+				//"neeger kuubis"
+			}
+		},
+		{
+			59, // default knife
 			SkinPreference{
 				879,
 				0,
@@ -29,30 +40,6 @@ namespace skins {
 			}
 		}
 	};
-}
-bool bInitialized = false;
-int initializationFails = 0;
-
-// Makes the necessary pointers for our weapon materials
-bool MakePointersToWeaponMaterials() {
-	using fUtlMemory_Alloc = uint8_t* (__fastcall*)(void*, void*, size_t, void*);
-	fUtlMemory_Alloc UtlMemory_Alloc = (fUtlMemory_Alloc)GetProcAddress(GetModuleHandle("tier0.dll"), "UtlMemory_Alloc");
-
-	uint8_t* startOfPointerChain = UtlMemory_Alloc(0, 0, 4*(3*8), 0);
-	if (!startOfPointerChain)
-		return false;
-
-	for (int i = 0; i < skins::wepMaterialPointers.size(); i++) {
-		*reinterpret_cast<void**>(startOfPointerChain) = startOfPointerChain + 8;
-		*reinterpret_cast<void**>(startOfPointerChain + 8) = 0;
-
-		*reinterpret_cast<uintptr_t*>(startOfPointerChain + 16) = 0;
-
-		skins::wepMaterialPointers[i] = std::make_tuple(startOfPointerChain, startOfPointerChain + 16);
-		startOfPointerChain += 24;
-	}
-
-	return true;
 }
 
 // Check whether to update a certain weapon's skin based on the users' settings
@@ -102,7 +89,13 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	if (!skinPref.useStattrak && !weapon->m_hStattrakEntity().IsInvalid())
 		return true;
 
-	// TODO: nametag change/removal/add
+	// check for nametag add or removal
+	if (strlen(skinPref.nametag) != 0 && weapon->m_hNametagEntity().IsInvalid())
+		return true;
+
+	if (strlen(skinPref.nametag) == 0 && !weapon->m_hNametagEntity().IsInvalid())
+		return true;
+
 	// TODO: check for sticker changes
 
 	return false;
@@ -115,6 +108,7 @@ void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
 	if (!pref.useStattrak)
 		return weapon->m_hStattrakEntity().Set(-1);
 
+
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater"), static_cast<float>(pref.stattrakKills));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater score type"), 0.0f);
 
@@ -124,21 +118,36 @@ void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
 
 }
 
+void SetNametag(C_WeaponCSBase* weapon, SkinPreference pref) {
+	if (strlen(pref.nametag) == 0) {
+		weapon->m_hNametagEntity().Set(-1);
+		memset(&weapon->m_AttributeManager().m_Item().m_szCustomName(), 0x00, sizeof(pref.nametag));
+	}
+
+	memcpy(&weapon->m_AttributeManager().m_Item().m_szCustomName(), &pref.nametag, sizeof(pref.nametag));
+	fn::SpawnAndSetNametagEnt(&weapon->m_hNametagEntity());
+}
+
 // Adds all necessary attributes etc to the weapon & forcefully updates its skin
 void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
 	SkinPreference pref = skins::loadout.at(weaponEconItem.m_iItemDefinitionIndex());
 
+	// add stattrak, nametag and stickers to weapon OR remove them
+	SetStattrak(weapon, pref);
+	SetNametag(weapon, pref);
+
+	// add skin to weapon
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture prefab"), static_cast<float>(pref.paintKitID));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture seed"), static_cast<float>(pref.seed));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref.wearValue);
-	SetStattrak(weapon, pref);
 
-	std::cout << weapon << std::endl;
 	// TODO: add stattrak and nametag attachments later
 	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
 	fn::RegenerateWeaponSkin(weapon);
-	fn::UpdateViewmodelAttachments(viewModel, weapon);
+	weapon->m_AttributeManager().m_Item().m_bInitialized() = false;
+	//fn::UpdateViewmodelAttachments(viewModel, weapon);
+	//skins::regenViewmodel = true; // update viewmodel next frame
 }
 
 // actual skin changer logic
@@ -173,11 +182,6 @@ void ApplySkins() {
 
 // called for every CreateMove
 void ApplySkinsCallback() {
-	if (!bInitialized) {
-		if (MakePointersToWeaponMaterials())
-			bInitialized = true;
-	}
-	else
-		ApplySkins();
-
+	// initialization code possibly
+	ApplySkins();
 }

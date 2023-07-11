@@ -46,6 +46,12 @@ constexpr auto MASK_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR = "xxxx?xxxxxxxxxxx";
 constexpr auto PATTERN_SPAWNSETSTATTRAK_PTR = "\x4c\x8b\xdc\x55\x41\x55\x49\x8d\x6b";
 constexpr auto MASK_SPAWNSETSTATTRAK_PTR = "xxxxxxxxx";
 
+// SpawnAndSetNametagAttachment(m_hNametagAttachment*)
+// found by string: Nametag: %s
+// found by string and xrefing: CEntitySpawner<class C_WorldModelNametag>::Spawn
+constexpr auto PATTERN_SPAWNSETNAMETAG_PTR = "\x40\x55\x41\x56\x48\x8d\xac\x24\x00\x00\x00\x00\x48\x81\xec\x00\x00\x00\x00\x8b\x51";
+constexpr auto MASK_SPAWNSETNAMETAG_PTR = "xxxxxxxx????xxx????xx";
+
 // ::SetAttributeValueByName(C_EconItemView*, char* name, float val)
 // found by string: set item texture prefab
 // look for a lot of the same functions together, preferably 4 such as texture prefab, texture seed, kill eater etc

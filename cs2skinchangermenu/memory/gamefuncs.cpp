@@ -10,6 +10,7 @@ namespace fn {
 	fAllowSkinRegenForWeapon AllowSkinRegenForWeapon = nullptr;
 	fCEconItemView__SetAttributeValueByName CEconItemView__SetAttributeValueByName = nullptr;
 	fSpawnAndSetStattrakEnt SpawnAndSetStattrakEnt = nullptr;
+	fSpawnAndSetNametagEnt SpawnAndSetNametagEnt = nullptr;
 	fUpdateViewmodelAttachments UpdateViewmodelAttachments = nullptr;
 }
 
@@ -52,6 +53,12 @@ void InitSkinAttachmentFunctions() {
 		return;
 
 	fn::SpawnAndSetStattrakEnt = (fSpawnAndSetStattrakEnt)funcptr;
+
+	funcptr = ScanPatternInModule("client.dll", PATTERN_SPAWNSETNAMETAG_PTR, MASK_SPAWNSETNAMETAG_PTR);
+	if (!funcptr)
+		return;
+
+	fn::SpawnAndSetNametagEnt = (fSpawnAndSetNametagEnt)funcptr;
 
 	funcptr = ScanPatternInModule("client.dll", PATTERN_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR, MASK_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR);
 	if (!funcptr)

@@ -15,6 +15,8 @@ public:
 	NETVAR(uint64_t, m_iItemID, "client.dll!C_EconItemView->m_iItemID");
 	NETVAR(uint32_t, m_iItemIDHigh, "client.dll!C_EconItemView->m_iItemIDHigh");
 	NETVAR(uint32_t, m_iItemIDLow, "client.dll!C_EconItemView->m_iItemIDLow");
+	NETVAR(bool, m_bInitialized, "client.dll!C_EconItemView->m_bInitialized");
+	NETVAR(char, m_szCustomName, "client.dll!C_EconItemView->m_szCustomName");
 
 	NETVAR(CAttributeList, m_AttributeList, "client.dll!C_EconItemView->m_AttributeList");
 	NETVAR(CAttributeList, m_NetworkedDynamicAttributes, "client.dll!C_EconItemView->m_NetworkedDynamicAttributes");
