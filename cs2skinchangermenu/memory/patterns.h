@@ -5,6 +5,12 @@
 constexpr auto PATTERN_GETECONITEMSYS_PTR = "\x48\x83\xec\x00\x48\x8b\x05\x00\x00\x00\x00\x48\x85\xc0\x75\x00\x48\x89\x5c\x24\x00\x8d\x48\x00\x48\x89\x7c\x24\x00\xe8\x00\x00\x00\x00\x33\xff\x48\x8b\xd8\x48\x85\xc0\x74\x00\x48\x8d\x05\x00\x00\x00\x00\x48\x89\x7b\x00\xb9\x00\x00\x00\x00\x48\x89\x03\xe8\x00\x00\x00\x00\x48\x85\xc0\x74\x00\x48\x8b\xc8\xe8\x00\x00\x00\x00\x48\x8b\xf8\x48\x8d\x05\x00\x00\x00\x00\x48\x89\x7b\x00\x48\x89\x03\xeb\x00\x48\x8b\xdf\x48\x8b\x7c\x24";
 constexpr auto MASK_GETECONITEMSYS_PTR = "xxx?xxx????xxxx?xxxx?xx?xxxx?x????xxxxxxxxx?xxx????xxx?x????xxxx????xxxx?xxxx????xxxxxx????xxx?xxxx?xxxxxxx";
 
+// CEconItemSystem::GetAttributeDefinitionByName(char*)
+// found by string: CEconItemSchema::GetAttributeDefinitionByName
+// found by: looking inside functions that set attrib values by name, they get the definition first
+constexpr auto PATTERN_GETATTRIBDEFBYNAME_PTR = "\x40\x55\x48\x83\xec\x00\x48\x89\x5c\x24\x00\x48\x89\x74\x24";
+constexpr auto MASK_GETATTRIBDEFBYNAME_PTR = "xxxxx?xxxx?xxxx";
+
 // csource2client::getcgameentitysystem pattern scan
 // 48 8B 05 F9 6F 10 01                          mov     rax, cs:qword_1817CD560
 // 48 83 C0 10                                   add     rax, 10h
@@ -64,7 +70,13 @@ constexpr auto PATTERN_REGENWEP_ALLOWREGENOFFSET = "\x48\x85\xC0\x74\x00\x39\xB0
 constexpr auto MASK_REGENWEP_ALLOWREGENOFFSET = "xxxx?xx????x?xx????x?";
 constexpr auto OFFSETSTART_REGENWEP_ALLOWREGENOFFSET = 15; // uint32 offset
 
-// RegenerateWeaponSkin(weapon*)
+// RegenerateAllWeaponSkins()
+// found by string: regenerate_weapon_skins
+// above that string there's a regen weapon function
+constexpr auto PATTERN_REGENALLWEAPONSKINS_PTR = "\x48\x83\xec\x00\xe8\x00\x00\x00\x00\x48\x85\xc0\x0f\x84\x00\x00\x00\x00\x48\x8b";
+constexpr auto MASK_REGENALLWEAPONSKINS_PTR = "xxx?x????xxxxx????xx";
+
+// RegenerateAllWeaponSkin(weapon*) -> if check to allow regeneration
 // found by string: regenerate_weapon_skins
 // second call inside an if check with 3 things to check
 // since the call address is relative to rip, we will dereference it for the correct address

@@ -3,7 +3,8 @@
 #include <array>
 
 class Sticker {
-	int stickerID;
+public:
+	int id;
 	float wear;
 };
 

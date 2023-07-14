@@ -6,5 +6,8 @@
 
 class CAttributeList {
 public:
-	NETVAR(CUtlVector<CEconItemAttribute>, m_Attributes, "client.dll!CAttributeList->m_Attributes")
+	NETVAR(CUtlVector<CEconItemAttribute>, m_Attributes, "client.dll!CAttributeList->m_Attributes");
+
+	void RemoveAttribute(char* name);
+	CEconItemAttribute* FindAttribute(char* name);
 };

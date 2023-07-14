@@ -24,4 +24,5 @@ public:
 public:
 	CWeaponCSBaseVData* GetCSWeaponDataFromItem();
 	void SetAttributeValueByName(const char* name, float value);
+	void SetAttributeValueIntByName(const char* name, int value);
 };
