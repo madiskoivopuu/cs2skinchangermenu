@@ -5,18 +5,15 @@
 #include <iostream>
 
 void DrawSideBar() {
-	nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, nk_window_get_height(gui::nuklearCtx), 2);
-	//nk_layout_row_push(gui::nuklearCtx, 0.25f);
+	float sidebarWidth = 0.25 * nk_window_get_width(gui::nuklearCtx);
 
-	//nk_button_label(gui::nuklearCtx, "button");
+    nk_layout_row_static(gui::nuklearCtx, nk_window_get_height(gui::nuklearCtx), sidebarWidth, 1);
+	if (nk_group_begin(gui::nuklearCtx, "sbar", NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BORDER)) {
+        nk_layout_row_static(gui::nuklearCtx, 25, sidebarWidth*0.95, 1);
 
-	nk_layout_row_push(gui::nuklearCtx, 0.25f);
-    if (nk_group_begin(gui::nuklearCtx, "1", NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)) {
-        nk_group_end(gui::nuklearCtx);
-    }
+        nk_button_label(gui::nuklearCtx, "Skin Changer");
+		nk_group_end(gui::nuklearCtx);
+	}
 
-	nk_layout_row_push(gui::nuklearCtx, 0.25f);
-	nk_label(gui::nuklearCtx, "aaaabb", NK_TEXT_ALIGN_CENTERED);
-
-	//nk_layout_row_end(gui::nuklearCtx);
+	// layout_row continues
 }

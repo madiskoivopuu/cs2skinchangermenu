@@ -30,10 +30,10 @@ namespace skins {
 				"",
 
 				{
-					Sticker{-1},
-					Sticker{180},
-					Sticker{-1},
-					Sticker{-1},
+					Sticker{76},
+					Sticker{6627},
+					Sticker{6611},
+					Sticker{76},
 				}
 			}
 		},
