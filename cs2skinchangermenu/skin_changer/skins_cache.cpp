@@ -2,7 +2,8 @@
 #include "skins_cache.h"
 
 namespace skins_cache {
-    std::unordered_map<uint32_t, std::vector<uint32_t>> paintkitsForWeapons;
+    std::unordered_map<uint32_t, std::vector<uint32_t>> paintkitsForWeapons = {};
+    std::vector<TextureCache> weaponSkins = {};
     vpktool::VPK skinsPakFile;
 }
 
@@ -46,26 +47,25 @@ bool LoadPak01File() {
     return true;
 }
 
-std::vector<TextureCache> LoadWeaponTextureThumbnails() {
-    std::vector<TextureCache> thumbnails;
+bool LoadWeaponTextureThumbnails() {
     if (!LoadPak01File())
-        return thumbnails;
+        return false;
 
     const std::unordered_map<std::string, std::vector<vpktool::VPKEntry>>& entries = skins_cache::skinsPakFile.getEntries();
     if (!entries.contains("panorama/images/econ/default_generated"))
-        return thumbnails;
+        return false;
 
     // load skins to cache
-    thumbnails.reserve(5000);
+    skins_cache::weaponSkins.reserve(7000);
     for (vpktool::VPKEntry entry : entries.at("panorama/images/econ/default_generated")) {
         // check if large_png is in the file name
         std::string suffix("large_png.vtex_c");
         if (entry.filename.size() <= strlen("large_png.vtex_c") || entry.filename.compare(entry.filename.size() - suffix.size(), suffix.size(), suffix) != 0)
             continue;
 
-        TextureCache cache = { false, skins_cache::skinsPakFile, entry, nullptr };
-        thumbnails.push_back(cache);
+        TextureCache cache = {entry};
+        skins_cache::weaponSkins.push_back(cache);
     }
 
-    return thumbnails;
+    return true;
 }

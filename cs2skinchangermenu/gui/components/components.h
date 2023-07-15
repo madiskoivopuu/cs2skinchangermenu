@@ -1,4 +1,4 @@
 #pragma once
 
-void DrawSideBar();
+void DrawSideBar(float sidebarWidth);
 void DrawSkinsOverview();

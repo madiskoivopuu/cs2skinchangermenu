@@ -275,5 +275,8 @@
     <ClCompile Include="gui\components\skins_overview_menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="skin_changer\TextureCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

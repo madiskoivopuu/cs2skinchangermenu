@@ -216,6 +216,7 @@
 /// ## API
 ///
 */
+
 #ifndef NK_SINGLE_FILE
   #define NK_SINGLE_FILE
 #endif
@@ -29613,9 +29614,30 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 }
 #endif
 
+// CUSTOM FUNCTIONS FOR OUR CHEAT
+// CUSTOM FUNCTIONS FOR OUR CHEAT
+//~~~~~~~~~~~~~~
+// Draws a rectangular button for the weapon skins menu.
+// TODO: add parameters
+bool DrawWeaponSkinButton(nk_context* ctx) { // struct nk_image img, const char* str, nk_flags align
+    if (!ctx || !ctx->current)
+        return false;
+
+    struct nk_rect bounds;
+    enum nk_widget_layout_states state = nk_widget(&bounds, ctx);
+
+    struct nk_rect content;
+    const struct nk_input* in = (state == NK_WIDGET_ROM || ctx->current->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    int ret = nk_do_button(&ctx->last_widget_state, &ctx->current->buffer, bounds, &ctx->style.button, in, ctx->button_behavior, &content); // update btn state
+    nk_draw_button(&ctx->current->buffer, &bounds, state, &ctx->style.button);
+
+    return ret;
+}
 
 
 #endif /* NK_IMPLEMENTATION */
+
+NK_API bool DrawWeaponSkinButton(nk_context* ctx);
 
 /*
 /// ## License

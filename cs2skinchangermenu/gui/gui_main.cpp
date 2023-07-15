@@ -1359,11 +1359,15 @@ overview(struct nk_context* ctx)
 void DrawMainWindow(nk_flags flags) {
 
 	if (nk_begin(gui::nuklearCtx, "godmode", nk_rect(10, 10, 1100, 600), flags)) {
-		DrawSideBar();
+        float sidebarWidth = 0.25 * nk_window_get_width(gui::nuklearCtx);
+
+        nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, nk_window_get_height(gui::nuklearCtx), 2);
+        nk_layout_row_push(gui::nuklearCtx, 0.25f);
+		DrawSideBar(sidebarWidth);
 
         // rest is 75%
         // TODO: change currently active menu by sidebar buttons
-
+        nk_layout_row_push(gui::nuklearCtx, 0.75f);
         DrawSkinsOverview();
 	}
 	nk_end(gui::nuklearCtx);

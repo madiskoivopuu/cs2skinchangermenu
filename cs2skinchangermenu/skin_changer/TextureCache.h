@@ -1,9 +1,12 @@
 #pragma once
 #include "vpktool/VPK.h"
 
-struct TextureCache {
-	bool loaded;
-	vpktool::VPK& vpk;
+class TextureCache {
 	vpktool::VPKEntry entryLoc;
+	bool loaded;
 	void* texture;
+
+public:
+	TextureCache(vpktool::VPKEntry entryLoc);
+	void* Get();
 };

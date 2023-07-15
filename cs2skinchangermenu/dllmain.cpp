@@ -13,7 +13,7 @@
 #include "sdk/econ/CCStrike15ItemDefinition.h"
 #include "sdk/KeyValues/ValveKeyValues.h"
 
-#include "skin_changer/skins.h"
+#include "skin_changer/skins_cache.h"
 
 #include <iostream>
 #include <fstream>
@@ -77,7 +77,7 @@ DWORD WINAPI Main(HMODULE hModule) {
     CUtlMap<int, CPaintKit*> paintKits = schema->GetPaintKits();
     CUtlMap<char*, CEconItemSetDefinition> itemSets = schema->GetItemSets();
 
-    //LoadWeaponTextureThumbnails();
+    LoadWeaponTextureThumbnails();
 
     //std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);

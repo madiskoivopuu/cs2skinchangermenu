@@ -28,7 +28,6 @@ struct VPKEntry {
     /// Preloaded data
     std::vector<std::byte> preloadedData;
 
-private:
     friend class VPK;
     VPKEntry() = default;
 };
