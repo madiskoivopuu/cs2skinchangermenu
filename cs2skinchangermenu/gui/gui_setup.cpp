@@ -15,6 +15,8 @@
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_INDEX_BUFFER 128 * 1024
 #include "gui_setup.h"
+#include "nuklear-gui/nuklear.h"
+#include "nuklear-gui/nuklear_d3d11.h"
 #include <iostream>
 
 #ifdef _DEBUG

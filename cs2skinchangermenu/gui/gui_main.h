@@ -1,8 +1,7 @@
 #pragma once
 
-#include "nuklear-gui/nuklear.h"
-
 #include <d3d11.h>
+struct nk_context;
 
 namespace gui {
 	extern nk_context* nuklearCtx;

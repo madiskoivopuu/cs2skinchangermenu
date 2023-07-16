@@ -3,6 +3,8 @@
 #include "gui/gui_main.h"
 #include "skin_changer/skins_cache.h"
 
+#include "nuklear-gui/nuklear.h"
+
 #include <iostream>
 
 void DrawSideBar(float sidebarWidth) {

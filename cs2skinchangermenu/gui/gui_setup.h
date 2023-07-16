@@ -1,7 +1,5 @@
 #pragma once
 
-#include "nuklear-gui/nuklear.h"
-#include "nuklear-gui/nuklear_d3d11.h"
 #include <Windows.h>
 #include <d3d11.h>
 

@@ -3,6 +3,11 @@
 #define NK_INCLUDE_STANDARD_VARARGS
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_INDEX_BUFFER 128 * 1024
+
+#include "nuklear-gui/nuklear.h"
+#include "nuklear-gui/nuklear_d3d11.h"
+
+#include "nuklear-gui/nuklear.h"
 #include "gui/gui_setup.h"
 #include "gui/components/components.h"
 #include "gui/gui_main.h"
@@ -15,7 +20,12 @@ namespace gui {
 	bool isGuiInit = false;
 }
 
+void SetupStyle() {
+    gui::nuklearCtx->style.text.padding = nk_vec2(8.0f, 5.0f);
+}
+
 void InitGUIForDrawing(IDXGISwapChain* chain) {
+
 	chain->GetDevice(__uuidof(gui::device), reinterpret_cast<void**>(&gui::device));
 	gui::device->GetImmediateContext(&gui::context);
 
@@ -45,6 +55,8 @@ void InitGUIForDrawing(IDXGISwapChain* chain) {
 	struct nk_font_atlas* atlas;
 	nk_d3d11_font_stash_begin(&atlas);
 	nk_d3d11_font_stash_end();
+
+    SetupStyle();
 
 	gui::isGuiInit = true;
 }

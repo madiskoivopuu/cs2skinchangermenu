@@ -23087,6 +23087,8 @@ nk_widget_has_mouse_click_down(struct nk_context *ctx, enum nk_buttons btn, nk_b
         return 0;
     return nk_input_has_mouse_click_down_in_rect(&ctx->input, btn, bounds, down);
 }
+
+// Get's the position and size of the current widget, advances cursor to the next widget.
 NK_API enum nk_widget_layout_states
 nk_widget(struct nk_rect *bounds, const struct nk_context *ctx)
 {
@@ -29619,25 +29621,68 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 //~~~~~~~~~~~~~~
 // Draws a rectangular button for the weapon skins menu.
 // TODO: add parameters
-bool DrawWeaponSkinButton(nk_context* ctx) { // struct nk_image img, const char* str, nk_flags align
+bool DrawWeaponSkinButton(nk_context* ctx, struct nk_image img) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return false;
 
-    struct nk_rect bounds;
-    enum nk_widget_layout_states state = nk_widget(&bounds, ctx);
+    struct nk_rect widgetBounds;
+    enum nk_widget_layout_states layoutState = nk_widget(&widgetBounds, ctx);
 
+    const struct nk_input* in = (layoutState == NK_WIDGET_ROM || ctx->current->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+
+    // button activation & state
     struct nk_rect content;
-    const struct nk_input* in = (state == NK_WIDGET_ROM || ctx->current->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
-    int ret = nk_do_button(&ctx->last_widget_state, &ctx->current->buffer, bounds, &ctx->style.button, in, ctx->button_behavior, &content); // update btn state
-    nk_draw_button(&ctx->current->buffer, &bounds, state, &ctx->style.button);
+    int ret = nk_do_button(&ctx->last_widget_state, &ctx->current->buffer, widgetBounds, &ctx->style.button, in, ctx->button_behavior, &content); // update btn state
+
+    // drawing the actual button
+    // background of btn
+    const struct nk_style_item* buttonBackground;
+    if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
+        buttonBackground = &ctx->style.button.hover;
+    else if (ctx->last_widget_state & NK_WIDGET_STATE_ACTIVED)
+        buttonBackground = &ctx->style.button.active;
+    else buttonBackground = &ctx->style.button.normal;
+
+    nk_fill_rect(&ctx->current->buffer, widgetBounds, 0.0f, buttonBackground->data.color);
+
+
+    // text at the bottom of btn
+    struct nk_rect textBounds;
+    textBounds.x = widgetBounds.x + ctx->style.text.padding.x;
+    textBounds.w = widgetBounds.w - 2*ctx->style.text.padding.x;
+    textBounds.y = widgetBounds.y + widgetBounds.h - ctx->style.font->height - 2*ctx->style.text.padding.y;
+    textBounds.h = widgetBounds.y - textBounds.y;
+
+    struct nk_text textSettings;
+    textSettings.padding.x = 0;
+    textSettings.padding.y = 0;
+    textSettings.background = ctx->style.window.background;
+    textSettings.text = nk_color(255, 255, 255, 255);
+    nk_widget_text(&ctx->current->buffer, textBounds, "Desert Eagle | Ocean Drive", 26, &textSettings, NK_TEXT_ALIGN_CENTERED, ctx->style.font);
+
+    // draw & resize img
+    struct nk_rect imageBounds;
+    float IMG_PADDING_XY = 8.0f;
+    imageBounds.x = widgetBounds.x + IMG_PADDING_XY;
+    imageBounds.w = widgetBounds.w - 2 * IMG_PADDING_XY;
+    imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
+    imageBounds.h = textBounds.y - widgetBounds.y - IMG_PADDING_XY;
+
+    nk_draw_image(&ctx->current->buffer, imageBounds, &img, nk_white);
+
+    // TODO: draw a boundary around the image
+    // TODO: stickers show
 
     return ret;
 }
 
 
+// CUSTOM FUNCTIONS FOR OUR CHEAT END
+// CUSTOM FUNCTIONS FOR OUR CHEAT END
+
 #endif /* NK_IMPLEMENTATION */
 
-NK_API bool DrawWeaponSkinButton(nk_context* ctx);
+NK_API bool DrawWeaponSkinButton(nk_context* ctx, struct nk_image img);
 
 /*
 /// ## License
