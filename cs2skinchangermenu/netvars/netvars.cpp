@@ -15,9 +15,9 @@
 #endif
 
 namespace Netvars {
-	// key -> Class::m_Netvar
+	// key -> Class::m_Netvar string hashed
 	// value -> offset from base class
-	std::unordered_map<uint32_t, uint32_t> list;
+	std::unordered_map<uint64_t, uint32_t> list;
 }
 
 bool InitializeNetvars() {

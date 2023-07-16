@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cache.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="gui\components\components.h" />
     <ClInclude Include="gui\gui_setup.h" />
@@ -211,6 +212,7 @@
     <ClInclude Include="vpktool\VPK.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cache.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="gui\components\sidebar.cpp" />
     <ClCompile Include="gui\components\skins_overview_menu.cpp" />

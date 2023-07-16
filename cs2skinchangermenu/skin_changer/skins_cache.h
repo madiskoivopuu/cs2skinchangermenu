@@ -11,5 +11,5 @@ namespace skins_cache {
     extern vpktool::VPK skinsPakFile;
 }
 
-void LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets);
+bool LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets);
 bool LoadWeaponTextureThumbnails();

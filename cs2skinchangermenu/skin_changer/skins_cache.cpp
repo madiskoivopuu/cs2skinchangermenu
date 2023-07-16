@@ -8,7 +8,7 @@ namespace skins_cache {
 }
 
 // Map out all released paintkits for each weapon
-void LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets) {
+bool LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets) {
     for (const auto& iter : itemSets) {
         CEconItemSetDefinition set = iter.m_value;
         for (int i = 0; i < set.items.Count(); i++) {
@@ -21,6 +21,8 @@ void LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets) {
             skins_cache::paintkitsForWeapons[weaponKit.m_nItemDef].push_back(weaponKit.m_nPaintKit);
         }
     }
+
+    return skins_cache::paintkitsForWeapons.size() != 0;
 }
 
 std::string GetCsgoVPKPath() {
@@ -64,6 +66,17 @@ bool LoadWeaponTextureThumbnails() {
             continue;
 
         TextureCache cache = {entry};
+        skins_cache::weaponSkins.push_back(cache);
+    }
+
+    // load regular weapons to our cache
+    for (vpktool::VPKEntry entry : entries.at("panorama/images/econ/weapons/base_weapons")) {
+        // check if large_png is in the file name
+        std::string suffix("large_png.vtex_c");
+        if (entry.filename.size() <= strlen("large_png.vtex_c") || entry.filename.compare(entry.filename.size() - suffix.size(), suffix.size(), suffix) != 0)
+            continue;
+
+        TextureCache cache = { entry };
         skins_cache::weaponSkins.push_back(cache);
     }
 

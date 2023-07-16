@@ -30,33 +30,6 @@ int ExitRoutine(HMODULE hModule, FILE* f) {
     return 0;
 }
 
-// TODO: use new lib
-std::unordered_map<std::string, std::string> ReadEnglishTranslation() {
-    char csgoFileLoc[MAX_PATH];
-    GetModuleFileName(nullptr, csgoFileLoc, MAX_PATH); // D:\Counter-Strike 2 new build\game\bin\win64\cs2.exe
-    std::string fileContent;
-
-    std::string englishTranslationFileLoc(csgoFileLoc);
-    englishTranslationFileLoc.replace(
-        englishTranslationFileLoc.find("bin\\win64\\cs2.exe"),
-        17,
-        "csgo\\resource\\csgo_english.txt"
-    );
-
-    Valve::ValveFileFormat::Parser kvParser;
-    std::unique_ptr<Valve::ValveFileFormat::Node> kv = kvParser.Parse(englishTranslationFileLoc);
-
-    // error checks
-    if (!kv.get())
-        return {};
-
-    if (kv.get()->GetChildren().size() == 0)
-        return {};
-    
-    Valve::ValveFileFormat::Node tokens = kv.get()->GetChildren().at(0);
-    return tokens.GetProperties();
-}
-
 void PreExitRoutine() {
     RemoveHooks();
 }
@@ -68,16 +41,6 @@ DWORD WINAPI Main(HMODULE hModule) {
     
     if (!LoadInterfaces() || !InitializeFunctions() || !InitializeNetvars() || !InitializeOffsets() || !InitializeGlobals() || !InitGUI() || !InitializeHooks())
         return ExitRoutine(hModule, f);
-
-    CCStrike15ItemSchema* schema = Interface::client->GetCCStrike15ItemSystem()->GetCCStrike15ItemSchema();
-    if(!schema)
-        return ExitRoutine(hModule, f);
-
-    CUtlMap<int, CCStrike15ItemDefinition*> weaponDefs = schema->GetWeaponDefinitions();
-    CUtlMap<int, CPaintKit*> paintKits = schema->GetPaintKits();
-    CUtlMap<char*, CEconItemSetDefinition> itemSets = schema->GetItemSets();
-
-    LoadWeaponTextureThumbnails();
 
     std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);

@@ -195,6 +195,9 @@
     <ClInclude Include="sdk\econ\CEconItemAttributeDefinition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -276,6 +279,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="skin_changer\TextureCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
