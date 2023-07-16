@@ -217,6 +217,8 @@
 ///
 */
 
+#include <string>
+
 #ifndef NK_SINGLE_FILE
   #define NK_SINGLE_FILE
 #endif
@@ -29621,7 +29623,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 //~~~~~~~~~~~~~~
 // Draws a rectangular button for the weapon skins menu.
 // TODO: add parameters
-bool DrawWeaponSkinButton(nk_context* ctx, struct nk_image img) { // struct nk_image img, const char* str, nk_flags align
+bool DrawWeaponSkinButton(nk_context* ctx, std::string text, struct nk_image img) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return false;
 
@@ -29658,7 +29660,7 @@ bool DrawWeaponSkinButton(nk_context* ctx, struct nk_image img) { // struct nk_i
     textSettings.padding.y = 0;
     textSettings.background = ctx->style.window.background;
     textSettings.text = nk_color(255, 255, 255, 255);
-    nk_widget_text(&ctx->current->buffer, textBounds, "Desert Eagle | Ocean Drive", 26, &textSettings, NK_TEXT_ALIGN_CENTERED, ctx->style.font);
+    nk_widget_text(&ctx->current->buffer, textBounds, text.c_str(), text.length(), &textSettings, NK_TEXT_ALIGN_CENTERED, ctx->style.font);
 
     // draw & resize img
     struct nk_rect imageBounds;
@@ -29666,7 +29668,7 @@ bool DrawWeaponSkinButton(nk_context* ctx, struct nk_image img) { // struct nk_i
     imageBounds.x = widgetBounds.x + IMG_PADDING_XY;
     imageBounds.w = widgetBounds.w - 2 * IMG_PADDING_XY;
     imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
-    imageBounds.h = textBounds.y - widgetBounds.y - IMG_PADDING_XY;
+    imageBounds.h = textBounds.y - widgetBounds.y - 2*IMG_PADDING_XY;
 
     nk_draw_image(&ctx->current->buffer, imageBounds, &img, nk_white);
 
@@ -29682,7 +29684,7 @@ bool DrawWeaponSkinButton(nk_context* ctx, struct nk_image img) { // struct nk_i
 
 #endif /* NK_IMPLEMENTATION */
 
-NK_API bool DrawWeaponSkinButton(nk_context* ctx, struct nk_image img);
+NK_API bool DrawWeaponSkinButton(nk_context* ctx, std::string text, struct nk_image img);
 
 /*
 /// ## License

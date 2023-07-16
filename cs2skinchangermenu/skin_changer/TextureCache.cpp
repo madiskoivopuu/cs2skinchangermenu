@@ -12,22 +12,44 @@ static std::vector<std::byte> pngMagicNr { std::byte{0x89}, std::byte{0x50}, std
 
 TextureCache::TextureCache(vpktool::VPKEntry entryLoc) {
 	this->entryLoc = entryLoc;
+	this->rawImgBytes = {};
 	this->loaded = false;
 	this->texture = nullptr;
 }
 
+TextureCache::TextureCache(std::vector<BYTE> rawImgBytes) {
+	this->rawImgBytes = rawImgBytes;
+	this->loaded = false;
+	this->texture = nullptr;
+}
+
+ImgData TextureCache::GetFromVPK(std::vector<std::byte>& vtexBytes) {
+	vtexBytes = skins_cache::skinsPakFile.readBinaryEntry(this->entryLoc);
+
+	std::vector<std::byte>::iterator resultPos = std::search(vtexBytes.begin(), vtexBytes.end(), pngMagicNr.begin(), pngMagicNr.end());
+	if (resultPos == vtexBytes.end())
+		return ImgData{ 0 };
+
+	size_t pngSize = vtexBytes.end() - resultPos;
+
+	return ImgData{ &*resultPos, pngSize };
+}
+
+ImgData TextureCache::GetRaw() {
+	return ImgData{ &*this->rawImgBytes.begin(), this->rawImgBytes.size()};
+}
+
 void* TextureCache::Get() {
 	if (!this->loaded) {
-		std::vector<std::byte> vtexBytes = skins_cache::skinsPakFile.readBinaryEntry(this->entryLoc);
-
-		std::vector<std::byte>::iterator resultPos = std::search(vtexBytes.begin(), vtexBytes.end(), pngMagicNr.begin(), pngMagicNr.end());
-		if (resultPos == vtexBytes.end())
-			return nullptr;
-
-		size_t pngSize = vtexBytes.end() - resultPos;
+		ImgData data;
+		std::vector<std::byte> vtexBytes;
+		if (this->rawImgBytes.size() != 0)
+			data = this->GetRaw();
+		else
+			data = this->GetFromVPK(vtexBytes);
 
 		DirectX::ScratchImage img;
-		HRESULT res = DirectX::LoadFromWICMemory(&*resultPos, pngSize, DirectX::WIC_FLAGS_NONE, nullptr, img);
+		HRESULT res = DirectX::LoadFromWICMemory(data.bytes, data.size, DirectX::WIC_FLAGS_NONE, nullptr, img);
 		if(!SUCCEEDED(res))
 			return nullptr;
 
