@@ -162,13 +162,15 @@ Valve::ValveFileFormat::Node Valve::ValveFileFormat::Parser::ParseNode(const std
 
 bool Valve::ValveFileFormat::Parser::LoadFile(const std::string& path, EFileEncoding enc)
 {
-    std::wifstream FileStream(path);
+    using BufIt = std::istreambuf_iterator<char>;
+    std::ifstream FileStream(path);
     if (!FileStream || !FileStream.good()) {
         //tfm::printf(XorStr("[!] Could not open file '%s'"), path);
         return false;
     }
 
-    switch (enc) {
+    // TODO: reenable if we ever need to open files with different encoding
+    /*switch (enc) {
     case ENC_UTF8:
         FileStream.imbue(std::locale(FileStream.getloc(), new std::codecvt_utf8_utf16<wchar_t>));
         break;
@@ -184,9 +186,16 @@ bool Valve::ValveFileFormat::Parser::LoadFile(const std::string& path, EFileEnco
         FileStream.imbue(
             std::locale(FileStream.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, std::consume_header>));
         break;
-    }
+    }*/
 
-    std::wstring wstrBuffer((std::istreambuf_iterator<wchar_t>(FileStream)), std::istreambuf_iterator<wchar_t>());
-    m_ss << wstring_to_string(wstrBuffer);
+    std::string temp(BufIt(FileStream.rdbuf()), BufIt());
+    // read data into wstring
+    /*std::wstring fileContents;
+    FileStream.seekg(0, std::ios::end);
+    fileContents.resize(FileStream.tellg());
+    FileStream.seekg(0, std::ios::beg);
+    FileStream.read(fileContents.data(), fileContents.size());*/
+
+    m_ss << temp;//wstring_to_string(fileContents);
     return true;
 }

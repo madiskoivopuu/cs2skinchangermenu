@@ -79,7 +79,7 @@ DWORD WINAPI Main(HMODULE hModule) {
 
     LoadWeaponTextureThumbnails();
 
-    //std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
+    std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
     //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
 
     hooks::swapChainPresentHook->Enable();
