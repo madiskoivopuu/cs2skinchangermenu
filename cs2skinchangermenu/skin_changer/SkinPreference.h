@@ -10,6 +10,8 @@ public:
 
 class SkinPreference {
 public:
+	int weaponID;
+
 	int paintKitID;
 	int seed;
 	float wearValue;

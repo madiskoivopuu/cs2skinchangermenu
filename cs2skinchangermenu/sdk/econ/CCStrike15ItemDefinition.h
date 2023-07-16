@@ -3,8 +3,13 @@
 
 class CCStrike15ItemDefinition {
 public:
-	const char* ItemName() {
+	const char* GetMainCategory() {
 		return *reinterpret_cast<const char**>(reinterpret_cast<uint8_t*>(this) + 0x1F8);
+	}
+
+	// returns the full weapon name with its subtype
+	const char* GetSubcategory() {
+		return *reinterpret_cast<const char**>(reinterpret_cast<uint8_t*>(this) + 0x210);
 	}
 
 	void* pVTable;

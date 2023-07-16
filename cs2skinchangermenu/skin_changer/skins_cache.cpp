@@ -13,6 +13,8 @@ namespace skins_cache {
         {
             4,
             SkinPreference{
+                4, // weapon id
+
                 879,
                 0,
                 0.10f,
@@ -31,7 +33,27 @@ namespace skins_cache {
             }
         },
     };
-    std::vector<SkinPreference> loadoutAllPresets = {};
+    std::vector<SkinPreference> loadoutAllPresets = {
+        SkinPreference{
+            4, // weapon id
+
+            879,
+            0,
+            0.10f,
+
+            true,
+            11,
+            //"neeger kuubis"
+            "",
+
+            {
+                Sticker{76},
+                Sticker{6627},
+                Sticker{6611},
+                Sticker{76},
+            }
+        }
+    };
 }
 
 // Map out all released paintkits for each weapon

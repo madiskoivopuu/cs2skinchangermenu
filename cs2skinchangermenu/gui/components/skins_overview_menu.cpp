@@ -6,6 +6,7 @@
 #include "skin_changer/skins_cache.h"
 
 #include "nuklear-gui/nuklear.h"
+#include "netvars/fnvhash.h"
 
 enum class Window : int {
     SkinsList,
@@ -105,7 +106,11 @@ void DrawSkinsOverview() {
         float skinPrefBoxSize = (0.75f * nk_window_get_width(gui::nuklearCtx)) / 5;
         nk_layout_row_dynamic(gui::nuklearCtx, skinPrefBoxSize, 4);
 
-        void* loadedTex = skins_cache::weaponSkins[2577].Get();
+		for (SkinPreference pref : skins_cache::loadoutAllPresets) {
+
+		}
+
+        void* loadedTex = skins_cache::weaponSkins[fnv::HashConst("weapon_knife_m9_bayonet_am_ruby_marbleized_light")].Get();
 		if (loadedTex)
 			DrawWeaponSkinButton(gui::nuklearCtx, "M9 Bayonet | Ultraviolet", nk_image_ptr(loadedTex));
 
