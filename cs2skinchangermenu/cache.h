@@ -9,7 +9,7 @@
 
 namespace cache {
 	extern std::unordered_map<std::string, std::string> englishTranslations;
-	extern CUtlMap<int, CCStrike15ItemDefinition*>  weaponDefs;
+	extern CUtlMap<int, CCStrike15ItemDefinition*> weaponDefs;
 	extern CUtlMap<int, CPaintKit*> paintKits;
 	extern CUtlMap<char*, CEconItemSetDefinition> itemSets;
 }

@@ -15,6 +15,7 @@ class TextureCache {
 	void* texture;
 
 public:
+	TextureCache();
 	TextureCache(vpktool::VPKEntry entryLoc);
 	TextureCache(std::vector<BYTE> rawImgBytes);
 	void* Get();

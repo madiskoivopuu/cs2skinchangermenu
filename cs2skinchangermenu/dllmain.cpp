@@ -13,7 +13,7 @@
 #include "sdk/econ/CCStrike15ItemDefinition.h"
 #include "sdk/KeyValues/ValveKeyValues.h"
 
-#include "skin_changer/skins_cache.h"
+#include "cache.h"
 
 #include <iostream>
 #include <fstream>
@@ -42,7 +42,7 @@ DWORD WINAPI Main(HMODULE hModule) {
     if (!LoadInterfaces() || !InitializeFunctions() || !InitializeNetvars() || !InitializeOffsets() || !InitializeGlobals() || !InitGUI() || !InitializeHooks())
         return ExitRoutine(hModule, f);
 
-    std::unordered_map<std::string, std::string> englishTranslations = ReadEnglishTranslation();
+    LoadCache();
     //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
 
     hooks::swapChainPresentHook->Enable();

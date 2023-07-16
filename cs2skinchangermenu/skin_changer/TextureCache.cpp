@@ -10,6 +10,12 @@
 
 static std::vector<std::byte> pngMagicNr { std::byte{0x89}, std::byte{0x50}, std::byte{0x4e}, std::byte{0x47}, std::byte{0x0d}, std::byte{0x0a}, std::byte{0x1a}, std::byte{0x0a}};
 
+TextureCache::TextureCache() {
+	this->rawImgBytes = {};
+	this->loaded = false;
+	this->texture = nullptr;
+}
+
 TextureCache::TextureCache(vpktool::VPKEntry entryLoc) {
 	this->entryLoc = entryLoc;
 	this->rawImgBytes = {};

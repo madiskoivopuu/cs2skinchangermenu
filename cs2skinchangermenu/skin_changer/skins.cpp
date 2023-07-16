@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "skins.h"
+#include "skins_cache.h"
 
 #include "sdk/CUtl/CUtlMap.h"
 #include "sdk/econ/CEconItemSetDefinition.h"
@@ -15,36 +16,13 @@
 
 namespace skins {
 	bool regenViewmodel = false;
-	std::unordered_map<uint32_t, SkinPreference> loadout = { 
-		// TODO: remove
-		{
-			4, 
-			SkinPreference{
-				879,
-				0,
-				0.10f,
-
-				true,
-				11,
-				//"neeger kuubis"
-				"",
-
-				{
-					Sticker{76},
-					Sticker{6627},
-					Sticker{6611},
-					Sticker{76},
-				}
-			}
-		},
-	};
 }
 
 // Check whether to update a certain weapon's skin based on the users' settings
 // Returns false at the end of the function if any rigorous checks didn't go through
 bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	int itemDefIndex = weapon->m_AttributeManager().m_Item().m_iItemDefinitionIndex();
-	if (skins::loadout.find(itemDefIndex) == skins::loadout.end()) // skin preference not set
+	if (skins_cache::activeLoadout.find(itemDefIndex) == skins_cache::activeLoadout.end()) // skin preference not set
 		return false;
 
 	// if the weapon doesn't have vdata set then we do not want to update, as some of the following functions need vdata
@@ -64,7 +42,7 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 		return true;
 
 	// check if weapon already has the same skin or float
-	SkinPreference skinPref = skins::loadout.at(itemDefIndex);
+	SkinPreference skinPref = skins_cache::activeLoadout.at(itemDefIndex);
 
 	CAttributeList attrs = weapon->m_AttributeManager().m_Item().m_AttributeList();
 	for (int i = 0; i < attrs.m_Attributes().Count(); i++) {
@@ -156,7 +134,7 @@ void SetStickers(C_WeaponCSBase* weapon, SkinPreference pref) {
 // Adds all necessary attributes etc to the weapon & forcefully updates its skin
 void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
-	SkinPreference pref = skins::loadout.at(weaponEconItem.m_iItemDefinitionIndex());
+	SkinPreference pref = skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
 
 	// add stattrak, nametag and stickers to weapon OR remove them
 	SetStattrak(weapon, pref);
