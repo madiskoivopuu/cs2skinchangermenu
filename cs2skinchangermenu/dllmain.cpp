@@ -11,7 +11,6 @@
 #include "gui/gui_setup.h"
 
 #include "sdk/econ/CCStrike15ItemDefinition.h"
-#include "sdk/KeyValues/ValveKeyValues.h"
 
 #include "cache.h"
 

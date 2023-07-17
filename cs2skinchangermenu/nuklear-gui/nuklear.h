@@ -29623,7 +29623,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 //~~~~~~~~~~~~~~
 // Draws a rectangular button for the weapon skins menu.
 // TODO: add parameters
-bool DrawWeaponSkinButton(nk_context* ctx, std::string text, struct nk_image img) { // struct nk_image img, const char* str, nk_flags align
+bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return false;
 
@@ -29670,7 +29670,10 @@ bool DrawWeaponSkinButton(nk_context* ctx, std::string text, struct nk_image img
     imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
     imageBounds.h = textBounds.y - widgetBounds.y - 2*IMG_PADDING_XY;
 
-    nk_draw_image(&ctx->current->buffer, imageBounds, &img, nk_white);
+    if (image) {
+        struct nk_image img = nk_image_ptr(image);
+        nk_draw_image(&ctx->current->buffer, imageBounds, &img, nk_white);
+    }
 
     // TODO: draw a boundary around the image
     // TODO: stickers show
@@ -29684,7 +29687,7 @@ bool DrawWeaponSkinButton(nk_context* ctx, std::string text, struct nk_image img
 
 #endif /* NK_IMPLEMENTATION */
 
-NK_API bool DrawWeaponSkinButton(nk_context* ctx, std::string text, struct nk_image img);
+NK_API bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image);
 
 /*
 /// ## License

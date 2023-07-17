@@ -2,7 +2,7 @@
 #include "cache.h"
 
 #include "sdk/econ/CCStrike15ItemSchema.h"
-#include "sdk/KeyValues/ValveKeyValues.h"
+#include "sdk/KeyValues/vdf_parser.hpp"
 #include "memory/interface.h"
 
 #include "skin_changer/skins_cache.h"
@@ -26,18 +26,25 @@ std::unordered_map<std::string, std::string> ReadEnglishTranslation() {
         "csgo\\resource\\csgo_english.txt"
     );
 
-    Valve::ValveFileFormat::Parser kvParser;
-    std::unique_ptr<Valve::ValveFileFormat::Node> kv = kvParser.Parse(englishTranslationFileLoc);
+    std::ifstream file(englishTranslationFileLoc);
+    file.seekg(3);
+    char c = file.get();
+    if (c != '\"')
+        throw std::runtime_error("problem with translation file");
 
-    // error checks
-    if (!kv.get())
+    // read file to string
+    file.seekg(3, std::ios::end);
+    size_t size = file.tellg();
+    std::string buffer(size, ' ');
+    file.seekg(3);
+    file.read(&buffer[0], size);
+
+    tyti::vdf::object kv = tyti::vdf::read(std::cbegin(buffer), std::cend(buffer));
+
+    if (kv.childs.size() == 0)
         return {};
 
-    if (kv.get()->GetChildren().size() == 0)
-        return {};
-
-    Valve::ValveFileFormat::Node tokens = kv.get()->GetChildren().at(0);
-    return tokens.GetProperties();
+    return kv.childs["Tokens"]->attribs;
 }
 
 bool LoadCache() {

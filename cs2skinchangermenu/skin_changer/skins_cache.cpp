@@ -15,7 +15,7 @@ namespace skins_cache {
             SkinPreference{
                 4, // weapon id
 
-                879,
+                278,
                 0,
                 0.10f,
 
@@ -37,7 +37,7 @@ namespace skins_cache {
         SkinPreference{
             4, // weapon id
 
-            879,
+            278,
             0,
             0.10f,
 

@@ -4,6 +4,7 @@
 #include "gui/gui_setup.h"
 #include "gui/gui_main.h"
 #include "skin_changer/skins_cache.h"
+#include "cache.h"
 
 #include "nuklear-gui/nuklear.h"
 #include "netvars/fnvhash.h"
@@ -96,6 +97,68 @@ TextureCache plusSymbol({
 	0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
 });
 
+// Creates a display name for skin preference.
+std::string CreateDisplayName(SkinPreference pref) {
+	std::string displayName = "";
+
+	std::optional<CCStrike15ItemDefinition*> itemDef = cache::weaponDefs.FindByKey(pref.weaponID);
+	if (itemDef.has_value())
+		displayName.append(
+			cache::englishTranslations[&itemDef.value()->GetHudTranslationTag()[1]]
+		);
+	else
+		displayName.append("Unknown");
+
+	if (pref.paintKitID != -1) {
+		displayName.append(" | ");
+
+		std::optional<CPaintKit*> paintkitDef = cache::paintKits.FindByKey(pref.paintKitID);
+		if (paintkitDef.has_value())
+			displayName.append(
+				cache::englishTranslations[&paintkitDef.value()->paintKitNameTag[1]]
+			);
+		else
+			displayName.append("Unknown");
+	}
+
+	return displayName;
+}
+
+// Gets the right wear image for the specified wear value
+const char* ImageForFloat(float wear) {
+	if (wear <= 0.15f)
+		return "light";
+	else if (wear <= 0.44f)
+		return "medium";
+	else
+		return "heavy";
+}
+
+std::string GetImageNameForSkinPreference(SkinPreference pref) {
+	std::string imageName = "";
+
+	std::optional<CCStrike15ItemDefinition*> itemDef = cache::weaponDefs.FindByKey(pref.weaponID);
+	if (itemDef.has_value())
+		imageName.append(
+			itemDef.value()->GetSubcategory()
+		);
+
+	if (pref.paintKitID != -1) {
+		imageName.append("_");
+
+		std::optional<CPaintKit*> paintkitDef = cache::paintKits.FindByKey(pref.paintKitID);
+		if (paintkitDef.has_value())
+			imageName.append(
+				paintkitDef.value()->paintKitName
+			);
+
+		imageName.append("_");
+		imageName.append(ImageForFloat(pref.wearValue));
+	}
+
+	return imageName;
+}
+
 void DrawSingleSkinSettings() {
 
 }
@@ -106,30 +169,16 @@ void DrawSkinsOverview() {
         float skinPrefBoxSize = (0.75f * nk_window_get_width(gui::nuklearCtx)) / 5;
         nk_layout_row_dynamic(gui::nuklearCtx, skinPrefBoxSize, 4);
 
-		for (SkinPreference pref : skins_cache::loadoutAllPresets) {
+		for (SkinPreference& pref : skins_cache::loadoutAllPresets) {
+			std::string displayName = CreateDisplayName(pref);
+			std::string weaponTextureName = GetImageNameForSkinPreference(pref);
 
+			void* loadedTex = skins_cache::weaponSkins[fnv::HashConst(weaponTextureName.c_str())].Get();
+			DrawWeaponSkinButton(gui::nuklearCtx, displayName, loadedTex);
 		}
 
-        void* loadedTex = skins_cache::weaponSkins[fnv::HashConst("weapon_knife_m9_bayonet_am_ruby_marbleized_light")].Get();
-		if (loadedTex)
-			DrawWeaponSkinButton(gui::nuklearCtx, "M9 Bayonet | Ultraviolet", nk_image_ptr(loadedTex));
-
 		void* plusTex = plusSymbol.Get();
-		if (plusTex)
-			DrawWeaponSkinButton(gui::nuklearCtx, "Add new skin", nk_image_ptr(plusTex));
-
-        //nk_select_image_label(gui::nuklearCtx, nk_image_ptr(loadedTex), "select this", NK_TEXT_ALIGN_CENTERED, false);
-    /*static int selected[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
-    nk_layout_row_dynamic(gui::nuklearCtx, skinPrefBoxSize, 5);
-    for (int i = 0; i < 16; ++i) {
-        if (nk_selectable_label(gui::nuklearCtx, "Z", NK_TEXT_CENTERED, &selected[i])) {
-            int x = (i % 4), y = i / 4;
-            if (x > 0) selected[i - 1] ^= 1;
-            if (x < 3) selected[i + 1] ^= 1;
-            if (y > 0) selected[i - 4] ^= 1;
-            if (y < 3) selected[i + 4] ^= 1;
-        }
-    }*/
+		DrawWeaponSkinButton(gui::nuklearCtx, "Add new skin", plusTex);
 
         nk_group_end(gui::nuklearCtx);
     }

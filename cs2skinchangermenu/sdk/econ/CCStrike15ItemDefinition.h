@@ -3,6 +3,10 @@
 
 class CCStrike15ItemDefinition {
 public:
+	const char* GetHudTranslationTag() {
+		return *reinterpret_cast<const char**>(reinterpret_cast<uint8_t*>(this) + 0x70);
+	}
+
 	const char* GetMainCategory() {
 		return *reinterpret_cast<const char**>(reinterpret_cast<uint8_t*>(this) + 0x1F8);
 	}

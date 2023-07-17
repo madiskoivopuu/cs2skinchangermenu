@@ -81,7 +81,7 @@
     <ClInclude Include="skin_changer\skins.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sdk\KeyValues\ValveKeyValues.h">
+    <ClInclude Include="sdk\KeyValues\vdf_parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk\econ\CEconItemSetDefinition.h">
@@ -231,9 +231,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="skin_changer\skins.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sdk\KeyValues\ValveKeyValues.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_setup.cpp">
