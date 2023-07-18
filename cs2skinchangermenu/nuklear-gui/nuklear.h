@@ -29618,12 +29618,53 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 }
 #endif
 
+struct nk_rect FormatImageBounds(struct nk_rect widgetBounds, int width, int height) {
+    float IMG_PADDING_XY = 0.0f;
+
+    struct nk_rect imageBounds;
+    imageBounds.x = widgetBounds.x + IMG_PADDING_XY;
+    imageBounds.w = widgetBounds.w - 2 * IMG_PADDING_XY;
+    imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
+    imageBounds.h = widgetBounds.h - 2 * IMG_PADDING_XY;
+
+    // center the image if width and height are smaller than bounds
+    if (width < imageBounds.w && width < imageBounds.h) {
+        imageBounds.x += (imageBounds.w - width) * 0.5f;
+        imageBounds.y += (imageBounds.h - height) * 0.5f;
+        imageBounds.w = width;
+        imageBounds.h = height;
+        return imageBounds;
+    }
+
+    bool widthLarger = width > height;
+    if (widthLarger) {
+        float scaleCoef = static_cast<float>(height) / static_cast<float>(width);
+        float newHeight = (widgetBounds.w - 2 * IMG_PADDING_XY) * scaleCoef;
+        float oldHeight = imageBounds.h;
+
+        // center the image along y axis
+        imageBounds.y += (oldHeight - newHeight) * 0.5f;
+        imageBounds.h = newHeight;
+    }
+    else {
+        float scaleCoef = static_cast<float>(width) / static_cast<float>(height);
+        float newWidth = (widgetBounds.h - 2 * IMG_PADDING_XY) * scaleCoef;
+        float oldWidth = imageBounds.h;
+
+        // center the image along y axis
+        imageBounds.x += (oldWidth - newWidth) * 0.5f;
+        imageBounds.w = newWidth;
+    }
+
+    return imageBounds;
+}
+
 // CUSTOM FUNCTIONS FOR OUR CHEAT
 // CUSTOM FUNCTIONS FOR OUR CHEAT
 //~~~~~~~~~~~~~~
 // Draws a rectangular button for the weapon skins menu.
 // TODO: add parameters
-bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image) { // struct nk_image img, const char* str, nk_flags align
+bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return false;
 
@@ -29668,11 +29709,12 @@ bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image) { // s
     imageBounds.x = widgetBounds.x + IMG_PADDING_XY;
     imageBounds.w = widgetBounds.w - 2 * IMG_PADDING_XY;
     imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
-    imageBounds.h = textBounds.y - widgetBounds.y - 2*IMG_PADDING_XY;
+    imageBounds.h = (textBounds.y - widgetBounds.y) - 2*IMG_PADDING_XY;
 
     if (image) {
+        struct nk_rect newImageBounds = FormatImageBounds(imageBounds, width, height);
         struct nk_image img = nk_image_ptr(image);
-        nk_draw_image(&ctx->current->buffer, imageBounds, &img, nk_white);
+        nk_draw_image(&ctx->current->buffer, newImageBounds, &img, nk_white);
     }
 
     // TODO: draw a boundary around the image
@@ -29681,13 +29723,51 @@ bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image) { // s
     return ret;
 }
 
+// Draws a rectangular box for a weapon skin
+// TODO: add parameters
+void DrawWeaponSkinBox(nk_context* ctx,void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
+    if (!ctx || !ctx->current)
+        return;
+
+    struct nk_rect widgetBounds;
+    enum nk_widget_layout_states layoutState = nk_widget(&widgetBounds, ctx);
+
+    // drawing the actual button
+    // background of btn
+    const struct nk_style_item* buttonBackground;
+    if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
+        buttonBackground = &ctx->style.button.hover;
+    else if (ctx->last_widget_state & NK_WIDGET_STATE_ACTIVED)
+        buttonBackground = &ctx->style.button.active;
+    else buttonBackground = &ctx->style.button.normal;
+
+    nk_fill_rect(&ctx->current->buffer, widgetBounds, 0.0f, buttonBackground->data.color);
+
+    // draw & resize img
+    struct nk_rect imageBounds;
+    float IMG_PADDING_XY = 8.0f;
+    imageBounds.x = widgetBounds.x + IMG_PADDING_XY;
+    imageBounds.w = widgetBounds.w - 2 * IMG_PADDING_XY;
+    imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
+    imageBounds.h = widgetBounds.h - 2 * IMG_PADDING_XY;
+
+    if (image) {
+        struct nk_rect newImageBounds = FormatImageBounds(imageBounds, width, height);
+        struct nk_image img = nk_image_ptr(image);
+        nk_draw_image(&ctx->current->buffer, newImageBounds, &img, nk_white);
+    }
+    
+    return;
+}
+
 
 // CUSTOM FUNCTIONS FOR OUR CHEAT END
 // CUSTOM FUNCTIONS FOR OUR CHEAT END
 
 #endif /* NK_IMPLEMENTATION */
 
-NK_API bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image);
+NK_API bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image, int width, int height);
+NK_API void DrawWeaponSkinBox(nk_context* ctx, void* image, int width, int height);
 
 /*
 /// ## License

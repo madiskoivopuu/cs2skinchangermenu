@@ -12,6 +12,8 @@ static std::vector<std::byte> pngMagicNr { std::byte{0x89}, std::byte{0x50}, std
 
 TextureCache::TextureCache() {
 	this->rawImgBytes = {};
+	this->width = 0;
+	this->height = 0;
 	this->loaded = false;
 	this->texture = nullptr;
 }
@@ -19,14 +21,26 @@ TextureCache::TextureCache() {
 TextureCache::TextureCache(vpktool::VPKEntry entryLoc) {
 	this->entryLoc = entryLoc;
 	this->rawImgBytes = {};
+	this->width = 0;
+	this->height = 0;
 	this->loaded = false;
 	this->texture = nullptr;
 }
 
 TextureCache::TextureCache(std::vector<BYTE> rawImgBytes) {
 	this->rawImgBytes = rawImgBytes;
+	this->width = 0;
+	this->height = 0;
 	this->loaded = false;
 	this->texture = nullptr;
+}
+
+int TextureCache::Width() {
+	return this->width;
+}
+
+int TextureCache::Height() {
+	return this->height;
 }
 
 ImgData TextureCache::GetFromVPK(std::vector<std::byte>& vtexBytes) {
@@ -63,6 +77,8 @@ void* TextureCache::Get() {
 		if (!SUCCEEDED(res2))
 			return nullptr;
 
+		this->width = img.GetMetadata().width;
+		this->height = img.GetMetadata().height;
 		this->loaded = true;
 	}
 

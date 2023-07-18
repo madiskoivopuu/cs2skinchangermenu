@@ -1372,15 +1372,17 @@ void DrawMainWindow(nk_flags flags) {
 
 	if (nk_begin(gui::nuklearCtx, "godmode", nk_rect(10, 10, 1100, 600), flags)) {
         float sidebarWidth = 0.25 * nk_window_get_width(gui::nuklearCtx);
-
         nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, nk_window_get_height(gui::nuklearCtx), 2);
+
         nk_layout_row_push(gui::nuklearCtx, 0.25f);
 		DrawSideBar(sidebarWidth);
 
         // rest is 75%
         // TODO: change currently active menu by sidebar buttons
         nk_layout_row_push(gui::nuklearCtx, 0.75f);
-        DrawSkinsOverview();
+        DrawSkinChangerMenu();
+
+        nk_layout_row_end(gui::nuklearCtx);
 	}
 	nk_end(gui::nuklearCtx);
 }
@@ -1393,7 +1395,7 @@ void DrawGUIFrame(IDXGISwapChain* chain) {
 
 	gui::context->OMSetRenderTargets(1, &gui::g_pRenderTargetView, NULL);
 
-	nk_flags window_flags = NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE;
+	nk_flags window_flags = NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_SCALABLE;
 	DrawMainWindow(window_flags);
 
 	nk_d3d11_render(gui::context, NK_ANTI_ALIASING_OFF);

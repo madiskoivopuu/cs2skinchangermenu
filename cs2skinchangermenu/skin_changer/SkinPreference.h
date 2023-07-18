@@ -10,14 +10,14 @@ public:
 
 class SkinPreference {
 public:
-	int weaponID;
+	int weaponID = 1;
 
-	int paintKitID;
-	int seed;
-	float wearValue;
+	int paintKitID = -1;
+	int seed = -1;
+	float wearValue = 0.0f;
 
-	bool useStattrak;
-	int stattrakKills;
+	bool useStattrak = false;
+	int stattrakKills = 0;
 
 	char nametag[64];
 

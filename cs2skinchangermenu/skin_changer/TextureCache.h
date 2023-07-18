@@ -11,6 +11,10 @@ typedef struct {
 class TextureCache {
 	vpktool::VPKEntry entryLoc;
 	std::vector<BYTE> rawImgBytes;
+
+	int width;
+	int height;
+
 	bool loaded;
 	void* texture;
 
@@ -19,6 +23,8 @@ public:
 	TextureCache(vpktool::VPKEntry entryLoc);
 	TextureCache(std::vector<BYTE> rawImgBytes);
 	void* Get();
+	int Width();
+	int Height();
 
 private:
 	ImgData GetRaw();

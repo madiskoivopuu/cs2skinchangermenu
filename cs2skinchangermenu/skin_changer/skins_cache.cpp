@@ -132,6 +132,23 @@ bool LoadWeaponTextureThumbnails() {
         skins_cache::weaponSkins[fnv::Hash(cacheKey.c_str())] = cache;
     }
 
+    // load sticker image data to cache
+    for (auto keyValuePair : entries) {
+        std::string key = keyValuePair.first;
+        if (key.find("panorama/images/econ/stickers") == std::string::npos) continue;
+
+        for (vpktool::VPKEntry entry : entries.at(key)) {
+            // check if large_png is in the file name
+            std::string suffix("large_png.vtex_c");
+            if (entry.filename.size() <= suffix.size() || entry.filename.compare(entry.filename.size() - suffix.size(), suffix.size(), suffix) != 0)
+                continue;
+
+            std::string cacheKey = entry.filename.substr(0, entry.filename.size() - suffix.size());
+            TextureCache cache = { entry };
+            skins_cache::weaponSkins[fnv::Hash(cacheKey.c_str())] = cache;
+        }
+    }
+
     return true;
 }
 
