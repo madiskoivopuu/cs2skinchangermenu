@@ -42,7 +42,7 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 		return true;
 
 	// check if weapon already has the same skin or float
-	SkinPreference skinPref = skins_cache::activeLoadout.at(itemDefIndex);
+	SkinPreference skinPref = *skins_cache::activeLoadout.at(itemDefIndex);
 
 	CAttributeList attrs = weapon->m_AttributeManager().m_Item().m_AttributeList();
 	for (int i = 0; i < attrs.m_Attributes().Count(); i++) {
@@ -134,7 +134,7 @@ void SetStickers(C_WeaponCSBase* weapon, SkinPreference pref) {
 // Adds all necessary attributes etc to the weapon & forcefully updates its skin
 void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
-	SkinPreference pref = skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
+	SkinPreference pref = *skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
 
 	// add stattrak, nametag and stickers to weapon OR remove them
 	SetStattrak(weapon, pref);

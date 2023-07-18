@@ -10,9 +10,10 @@ namespace skins_cache {
     extern std::unordered_map<uint32_t, std::vector<uint32_t>> paintkitsForWeapons;
     extern std::unordered_map<uint64_t, TextureCache> weaponSkins;
     extern vpktool::VPK skinsPakFile;
-    extern std::unordered_map<uint32_t, SkinPreference> activeLoadout;
+    extern std::unordered_map<uint32_t, SkinPreference*> activeLoadout;
 	extern std::vector<SkinPreference> loadoutAllPresets;
 }
 
+SkinPreference* CreateAndActivateNewPreference();
 bool LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets);
 bool LoadWeaponTextureThumbnails();

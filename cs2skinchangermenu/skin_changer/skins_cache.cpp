@@ -8,51 +8,34 @@ namespace skins_cache {
     // value: texture for that weapon's skin (_heavy at the end is preserved for well worn etc, large_png.vtex_c isn't)
     std::unordered_map<uint64_t, TextureCache> weaponSkins = {};
     vpktool::VPK skinsPakFile;
-    std::unordered_map<uint32_t, SkinPreference> activeLoadout = {
+    std::vector<SkinPreference> loadoutAllPresets = {
+    SkinPreference{
+        4, // weapon id
+
+        278,
+        0,
+        0.10f,
+
+        true,
+        11,
+        //"neeger kuubis"
+        "",
+
+        {
+            Sticker{76},
+            Sticker{6627},
+            Sticker{6611},
+            Sticker{76},
+        }
+    }
+    };
+
+    std::unordered_map<uint32_t, SkinPreference*> activeLoadout = {
         // TODO: remove
         {
             4,
-            SkinPreference{
-                4, // weapon id
-
-                278,
-                0,
-                0.10f,
-
-                true,
-                11,
-                //"neeger kuubis"
-                "",
-
-                {
-                    Sticker{76},
-                    Sticker{6627},
-                    Sticker{6611},
-                    Sticker{76},
-                }
-            }
+            &loadoutAllPresets[0]
         },
-    };
-    std::vector<SkinPreference> loadoutAllPresets = {
-        SkinPreference{
-            4, // weapon id
-
-            278,
-            0,
-            0.10f,
-
-            true,
-            11,
-            //"neeger kuubis"
-            "",
-
-            {
-                Sticker{76},
-                Sticker{6627},
-                Sticker{6611},
-                Sticker{76},
-            }
-        }
     };
 }
 
@@ -150,6 +133,14 @@ bool LoadWeaponTextureThumbnails() {
     }
 
     return true;
+}
+
+SkinPreference* CreateAndActivateNewPreference() {
+    SkinPreference pref = { };
+    skins_cache::loadoutAllPresets.push_back(pref);
+
+    skins_cache::activeLoadout[pref.weaponID] = &skins_cache::loadoutAllPresets.back();
+    return &skins_cache::loadoutAllPresets.back();
 }
 
 // Load all user's preset skins from file(server) to memory.

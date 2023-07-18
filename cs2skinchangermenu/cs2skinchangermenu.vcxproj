@@ -152,6 +152,7 @@
     <ClInclude Include="cache.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="gui\components\components.h" />
+    <ClInclude Include="gui\components\helpers\skins_overview_helper.h" />
     <ClInclude Include="gui\gui_setup.h" />
     <ClInclude Include="gui\gui_main.h" />
     <ClInclude Include="memory\hooks.h" />
@@ -178,6 +179,7 @@
     <ClInclude Include="sdk\econ\CEconItemAttributeDefinition.h" />
     <ClInclude Include="sdk\econ\CEconItemSetDefinition.h" />
     <ClInclude Include="sdk\econ\CPaintKit.h" />
+    <ClInclude Include="sdk\econ\CStickerKit.h" />
     <ClInclude Include="sdk\gameclasses\CAttributeList.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayerController.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayer_ViewModelServices.h" />

@@ -8,6 +8,11 @@ CUtlMap<int, CPaintKit*> CCStrike15ItemSchema::GetPaintKits() {
 	return *reinterpret_cast< CUtlMap<int, CPaintKit*>* >(this + 0x2E8);
 }
 
+
+CUtlMap<int, CStickerKit*> CCStrike15ItemSchema::GetStickerKits() {
+	return *reinterpret_cast<CUtlMap<int, CStickerKit*>*>(this + 0x318);
+}
+
 CUtlMap<int, CCStrike15ItemDefinition*> CCStrike15ItemSchema::GetWeaponDefinitions() {
 	return *reinterpret_cast< CUtlMap<int, CCStrike15ItemDefinition*>* > (this + 0x120);
 }

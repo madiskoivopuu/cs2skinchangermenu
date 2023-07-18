@@ -12,6 +12,7 @@ namespace cache {
     CUtlMap<int, CCStrike15ItemDefinition*> weaponDefs;
     CUtlMap<int, CPaintKit*> paintKits;
     CUtlMap<char*, CEconItemSetDefinition> itemSets;
+    CUtlMap<int, CStickerKit*> stickerKits;
 }
 
 std::unordered_map<std::string, std::string> ReadEnglishTranslation() {
@@ -55,6 +56,7 @@ bool LoadCache() {
     cache::weaponDefs = schema->GetWeaponDefinitions();
     cache::paintKits = schema->GetPaintKits();
     cache::itemSets = schema->GetItemSets();
+    cache::stickerKits = schema->GetStickerKits();
 
     if(!cache::englishTranslations.size())
         cache::englishTranslations = ReadEnglishTranslation();

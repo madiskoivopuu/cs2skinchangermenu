@@ -19668,7 +19668,7 @@ nk_panel_begin(struct nk_context *ctx, const char *title, enum nk_panel_type pan
                 break;
             case NK_STYLE_ITEM_COLOR:
                 text.background = background->data.color;
-                nk_fill_rect(out, header, 0, background->data.color);
+                nk_fill_rect(out, header, ctx->style.window.rounding, background->data.color);
                 break;
         }
 
@@ -29734,12 +29734,7 @@ void DrawWeaponSkinBox(nk_context* ctx,void* image, int width, int height) { // 
 
     // drawing the actual button
     // background of btn
-    const struct nk_style_item* buttonBackground;
-    if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
-        buttonBackground = &ctx->style.button.hover;
-    else if (ctx->last_widget_state & NK_WIDGET_STATE_ACTIVED)
-        buttonBackground = &ctx->style.button.active;
-    else buttonBackground = &ctx->style.button.normal;
+    const struct nk_style_item* buttonBackground = &ctx->style.button.normal;
 
     nk_fill_rect(&ctx->current->buffer, widgetBounds, 0.0f, buttonBackground->data.color);
 

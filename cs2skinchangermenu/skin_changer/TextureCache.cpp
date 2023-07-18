@@ -77,8 +77,8 @@ void* TextureCache::Get() {
 		if (!SUCCEEDED(res2))
 			return nullptr;
 
-		this->width = img.GetMetadata().width;
-		this->height = img.GetMetadata().height;
+		this->width = static_cast<int>(img.GetMetadata().width);
+		this->height = static_cast<int>(img.GetMetadata().height);
 		this->loaded = true;
 	}
 
