@@ -272,14 +272,14 @@ void SingleSkinSettingsLeftPanel() {
 
 			auto mapIter = skins_cache::activeLoadout.find(windowState.currSkinPref->weaponID);
 			bool bEnabled = mapIter != skins_cache::activeLoadout.end() && mapIter->second == windowState.currSkinPref;
-			int bEnabledNow = static_cast<int>(bEnabled);
+			int bEnabledNow = static_cast<int>(!bEnabled);
 
 			// check if value has changed
 			if (nk_checkbox_text(gui::nuklearCtx, "Skin enabled", strlen("Skin enabled"), &bEnabledNow)) {
-				if (!bEnabled && static_cast<bool>(bEnabledNow))
+				if (!bEnabled && !static_cast<bool>(bEnabledNow))
 					skins_cache::activeLoadout[windowState.currSkinPref->weaponID] = &*windowState.currSkinPref;
 				
-				if (bEnabled && !static_cast<bool>(bEnabledNow) && mapIter != skins_cache::activeLoadout.end())
+				if (bEnabled && static_cast<bool>(bEnabledNow) && mapIter != skins_cache::activeLoadout.end())
 					skins_cache::activeLoadout.erase(mapIter);
 			}
 
@@ -311,7 +311,7 @@ void DrawSingleSkinSettings() {
 }
 
 void DrawSkinsOverview() {
-	int SKINS_PER_ROW = 5;
+	int SKINS_PER_ROW = 4;
 
     if (nk_group_begin(gui::nuklearCtx, "skins_menu", 0)) {
         // 5 rectangular items per row
@@ -330,11 +330,8 @@ void DrawSkinsOverview() {
 		}
 
 		if(DrawWeaponSkinButton(gui::nuklearCtx, "Add new skin", plusSymbol.Get(), plusSymbol.Width(), plusSymbol.Height())) {
-			SkinPreference pref = { };
-			skins_cache::loadoutAllPresets.push_back(pref);
-
 			windowState.SetWindow(Window::SingleSkinSettings);
-			windowState.currSkinPref = &skins_cache::loadoutAllPresets.back();
+			windowState.currSkinPref = CreateAndActivateNewPreference();
 		}
 
         nk_group_end(gui::nuklearCtx);
