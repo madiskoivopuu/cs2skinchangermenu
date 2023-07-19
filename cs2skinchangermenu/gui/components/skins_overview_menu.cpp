@@ -20,6 +20,7 @@ struct WindowState {
 	Window prevWindow = Window::SkinsList;
     Window currActiveWindow = Window::SkinsList;
 	SkinPreference* currSkinPref = nullptr;
+
 	char searchString[64];
 	int modifyingSickerNum;
 
@@ -292,10 +293,10 @@ void SingleSkinSettingsLeftPanel() {
 			nk_layout_row_dynamic(gui::nuklearCtx, 30, 2);
 			int bEnabledCT = static_cast<int>(!windowState.currSkinPref->enabledCT);
 			int bEnabledT = static_cast<int>(!windowState.currSkinPref->enabledT);
-			if (nk_checkbox_text(gui::nuklearCtx, "CT", strlen("CT"), &bEnabledCT))
+			if (nk_checkbox_label(gui::nuklearCtx, "CT", &bEnabledCT))
 				windowState.currSkinPref->enabledCT = !windowState.currSkinPref->enabledCT;
 
-			if (nk_checkbox_text(gui::nuklearCtx, "T", strlen("T"), &bEnabledT))
+			if (nk_checkbox_label(gui::nuklearCtx, "T", &bEnabledT))
 				windowState.currSkinPref->enabledT = !windowState.currSkinPref->enabledT;
 
 			nk_layout_row_static(gui::nuklearCtx, 30, bounds.w, 1);
@@ -343,6 +344,7 @@ void SingleSkinSettingsRightPanel() {
 		// current paintkit row
 		{
 			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, 25, 3);
+
 			nk_layout_row_push(gui::nuklearCtx, 0.25f);
 			nk_label(gui::nuklearCtx, "Current skin", NK_TEXT_ALIGN_LEFT);
 
@@ -353,11 +355,35 @@ void SingleSkinSettingsRightPanel() {
 
 			nk_layout_row_push(gui::nuklearCtx, 0.25f);
 			nk_button_label(gui::nuklearCtx, "Change");
+
+			nk_layout_row_end(gui::nuklearCtx);
+		}
+
+		// seed
+		{
+			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, 25, 2);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.4f);
+			nk_label(gui::nuklearCtx, "Skin pattern (seed)", NK_TEXT_ALIGN_LEFT);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.6f);
+			char patternSeed[7] = { 0 }; // probably bottlenecks somewhere
+			std::string pattern = std::to_string(windowState.currSkinPref->seed);
+			strcpy_s(patternSeed, sizeof(patternSeed), pattern.c_str());
+
+			nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, patternSeed, sizeof(patternSeed), nk_filter_decimal);
+			if (strlen(patternSeed) > 0)
+				windowState.currSkinPref->seed = std::stoi(patternSeed);
+			else
+				windowState.currSkinPref->seed = 0;
+
+			nk_layout_row_end(gui::nuklearCtx);
 		}
 
 		// current wear
 		{
 			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, 25, 3);
+
 			nk_layout_row_push(gui::nuklearCtx, 0.2f);
 			nk_label(gui::nuklearCtx, "Skin wear", NK_TEXT_ALIGN_LEFT);
 
@@ -368,6 +394,51 @@ void SingleSkinSettingsRightPanel() {
 			std::string wearStr = std::to_string(windowState.currSkinPref->wearValue);
 			wearStr.resize(4, '0');
 			nk_label(gui::nuklearCtx, wearStr.c_str(), NK_TEXT_ALIGN_CENTERED);
+
+			nk_layout_row_end(gui::nuklearCtx);
+		}
+
+		// stattrak
+		{
+			nk_layout_row_static(gui::nuklearCtx, 25, 125, 1);
+	
+			int bEnabled = static_cast<int>(!windowState.currSkinPref->useStattrak);
+			if (nk_checkbox_label(gui::nuklearCtx, "Enable StatTrak™", &bEnabled))
+				windowState.currSkinPref->useStattrak = !windowState.currSkinPref->useStattrak;
+
+			// kills count
+			if (windowState.currSkinPref->useStattrak) {
+				nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, 25, 2);
+
+				nk_layout_row_push(gui::nuklearCtx, 0.3f);
+				nk_label(gui::nuklearCtx, "StatTrak™ kills", NK_TEXT_ALIGN_LEFT);
+
+				nk_layout_row_push(gui::nuklearCtx, 0.7f);
+				char killsCount[7] = { 0 }; // probably bottlenecks somewhere
+				std::string kills = std::to_string(windowState.currSkinPref->stattrakKills);
+				strcpy_s(killsCount, sizeof(killsCount), kills.c_str());
+
+				nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, killsCount, sizeof(killsCount), nk_filter_decimal);
+				if (strlen(killsCount) > 0)
+					windowState.currSkinPref->stattrakKills = std::stoi(killsCount);
+				else
+					windowState.currSkinPref->stattrakKills = 0;
+
+				nk_layout_row_end(gui::nuklearCtx);
+			}
+		}
+
+		// name tag
+		{
+			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, 25, 2);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.3f);
+			nk_label(gui::nuklearCtx, "Name tag", NK_TEXT_ALIGN_LEFT);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.7f);
+			nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, windowState.currSkinPref->nametag, sizeof(windowState.currSkinPref->nametag), nk_filter_default);
+
+			nk_layout_row_end(gui::nuklearCtx);
 		}
 
 		nk_group_end(gui::nuklearCtx);
