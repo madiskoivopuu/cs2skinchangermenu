@@ -10,7 +10,10 @@ public:
 	NETVAR(EntitySpottedState_t, pEntitySpottedState, "client.dll!C_CSPlayerPawnBase->m_entitySpottedState");
 	NETVAR(CPlayer_WeaponServices*, m_pWeaponServices, "client.dll!C_BasePlayerPawn->m_pWeaponServices");
 
+	NETVAR(uint32_t, m_nNextSceneEventId, "client.dll!C_BaseFlex->m_nNextSceneEventId");
 	NETVAR(CCSPlayer_ViewModelServices*, m_pViewModelServices, "client.dll!C_CSPlayerPawnBase->m_pViewModelServices");
+	NETVAR(bool, m_bNeedToReApplyGloves, "client.dll!C_CSPlayerPawn->m_bNeedToReApplyGloves");
+	NETVAR(C_EconItemView, m_EconGloves, "client.dll!C_CSPlayerPawn->m_EconGloves");
 
 	/*void SetSpotted() {
 		EntitySpottedState_t& spottedState = pEntitySpottedState();

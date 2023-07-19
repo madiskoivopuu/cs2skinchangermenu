@@ -626,7 +626,7 @@ void DrawSkinsSearch() {
 			nk_layout_row_end(gui::nuklearCtx);
 		}
 
-		// stickers list
+		// skins list
 		float listHeight = nk_window_get_height(gui::nuklearCtx) - SEARCHBAR_HEIGHT - 4 * gui::nuklearCtx->style.window.padding.y;
 		nk_layout_row_dynamic(gui::nuklearCtx, listHeight, 1);
 		if (nk_group_begin(gui::nuklearCtx, "skins_list", NK_WINDOW_MOVABLE)) {

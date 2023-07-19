@@ -11,6 +11,7 @@
 #include "gui/gui_setup.h"
 
 #include "sdk/econ/CCStrike15ItemDefinition.h"
+#include "memory/tools/patternscan.h"
 
 #include "cache.h"
 

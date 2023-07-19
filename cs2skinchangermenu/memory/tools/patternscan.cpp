@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <Psapi.h>
 #include <Windows.h>
+#include <iostream>
 
 char* ScanPattern(char* startAddr, uint64_t bytesToScan, const char* pattern, const char* mask) {
 	uint64_t patternLen = strlen(mask);
@@ -57,7 +58,7 @@ int ScanPatternInModuleCount(const char* moduleName, const char* pattern, const 
 	do { // scan for pattern, update count and start addy
 		startAddress = static_cast<char*>(ScanPattern(startAddress, static_cast<ptrdiff_t>(endAddress - startAddress), pattern, mask));
 		if (startAddress) {
-			//std::cout << static_cast<void*>(startAddress) << std::endl;
+			std::cout << static_cast<void*>(startAddress) << std::endl;
 			startAddress += strlen(pattern);
 			count++;
 		}

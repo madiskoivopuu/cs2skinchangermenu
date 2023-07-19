@@ -95,8 +95,16 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	return false;
 }
 
+void ForceStattrakUpdate(C_CSGOViewModel* viewModel) {
+	int magicNr = 3369543006;
+	int64_t offset = fn::GetNextSceneEventIDOffset(&viewModel->m_nNextSceneEventId(), &magicNr, magicNr, false);
+
+	uint8_t* dataLoc = *reinterpret_cast<uint8_t**>(&viewModel->m_nNextSceneEventId()) + offset * 0x10;
+	*reinterpret_cast<int*>(dataLoc + 0xc) = 15;
+}
+
 // Sets the stattrak on our weapon depending whether it is enabled or not
-void SetStattrak(C_WeaponCSBase* weapon, SkinPreference* pref) {
+void SetStattrak(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, SkinPreference* pref) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
 
 	if (!pref->useStattrak)
@@ -110,6 +118,7 @@ void SetStattrak(C_WeaponCSBase* weapon, SkinPreference* pref) {
 	if (weapon->m_hStattrakEntity().IsInvalid())
 		fn::SpawnAndSetStattrakEnt(&weapon->m_hStattrakEntity());
 
+	ForceStattrakUpdate(viewModel);
 }
 
 void SetNametag(C_WeaponCSBase* weapon, SkinPreference* pref) {
@@ -144,7 +153,7 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	SkinPreference* pref = skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
 
 	// add stattrak, nametag and stickers to weapon OR remove them
-	SetStattrak(weapon, pref);
+	SetStattrak(viewModel, weapon, pref);
 	SetNametag(weapon, pref);
 	SetStickers(weapon, pref);
 
@@ -181,6 +190,18 @@ void ApplySkins() {
 	if (!viewModel)
 		return;
 	
+	pawn->m_nNextSceneEventId() += 15;
+	pawn->m_EconGloves().m_iItemDefinitionIndex() = 5033;
+	pawn->m_EconGloves().m_iItemID() = -1;
+	pawn->m_EconGloves().m_iItemIDLow() = -1;
+	pawn->m_EconGloves().m_iItemIDHigh() = -1;
+	pawn->m_EconGloves().SetAttributeValueByName("set item texture prefab", 0.0f);
+	pawn->m_EconGloves().SetAttributeValueByName("set item texture seed", 0.0f);
+	pawn->m_EconGloves().SetAttributeValueByName("set item texture wear", 0.0f);
+
+	pawn->m_EconGloves().m_bInitialized() = true;
+	pawn->m_bNeedToReApplyGloves() = true;
+
 	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
 	if(weapon != nullptr) {
 		if (!ShouldUpdateSkin(pawn, weapon))

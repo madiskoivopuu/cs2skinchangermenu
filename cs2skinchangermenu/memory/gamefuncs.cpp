@@ -14,6 +14,17 @@ namespace fn {
 	fUpdateViewmodelAttachments UpdateViewmodelAttachments = nullptr;
 	fCEconItemSchema__GetAttributeDefinitionByName CEconItemSchema__GetAttributeDefinitionByName = nullptr;
 	fRegenerateAllWeaponSkins RegenerateAllWeaponSkins = nullptr;
+	fGetNextSceneEventIDOffset GetNextSceneEventIDOffset = nullptr;
+}
+
+void InitNextSceneIDOffset() {
+	uint8_t* relCallPtr = reinterpret_cast<uint8_t*>(ScanPatternInModule("client.dll", PATTERN_GETNEXTSCENEEVENTOFFSET_PTR_OFFSET, MASK_GETNEXTSCENEEVENTOFFSET_PTR_OFFSET));
+	if (!relCallPtr)
+		return;
+
+	// set up allowskinregen func by it's relative call addy
+	int32_t offsetFromInstruction = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_GETNEXTSCENEEVENTOFFSET);
+	fn::GetNextSceneEventIDOffset = reinterpret_cast<fGetNextSceneEventIDOffset>(relCallPtr + OFFSETEND_GETNEXTSCENEEVENTOFFSET + offsetFromInstruction);
 }
 
 void InitGetCEconItemSystem() {
@@ -40,7 +51,7 @@ void InitSkinFunctions() {
 		return;
 
 	// set up allowskinregen func by it's relative call addy
-	uint32_t offsetFromInstruction = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_ALLOWSKINREGEN);
+	int32_t offsetFromInstruction = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_ALLOWSKINREGEN);
 	fn::AllowSkinRegenForWeapon = reinterpret_cast<fAllowSkinRegenForWeapon>(relCallPtr + OFFSETEND_ALLOWSKINREGEN + offsetFromInstruction);
 
 	// set up regenweaponskin func
@@ -88,7 +99,8 @@ bool InitializeFunctions() {
 	InitGetCSWeaponDataFromItem();
 	InitSkinFunctions();
 	InitSkinAttachmentFunctions();
+	InitNextSceneIDOffset();
 
 	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && fn::RegenerateWeaponSkin && fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName
-		&& fn::UpdateViewmodelAttachments && fn::SpawnAndSetStattrakEnt && fn::CEconItemSchema__GetAttributeDefinitionByName && fn::RegenerateAllWeaponSkins;
+		&& fn::UpdateViewmodelAttachments && fn::SpawnAndSetStattrakEnt && fn::CEconItemSchema__GetAttributeDefinitionByName && fn::RegenerateAllWeaponSkins && fn::GetNextSceneEventIDOffset;
 }

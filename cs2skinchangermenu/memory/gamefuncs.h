@@ -17,6 +17,7 @@ using fSpawnAndSetStattrakEnt = void (__fastcall*)(void*); // 1st argument is m_
 using fUpdateViewmodelAttachments = void (__fastcall*)(void*, C_WeaponCSBase*); // 1st argument is C_CSGOViewModel*
 using fSpawnAndSetNametagEnt = void (__fastcall*)(void*); // 1st argument is m_hNametagAttachment*
 using fCEconItemSchema__GetAttributeDefinitionByName = CEconItemAttributeDefinition* (__fastcall*)(void*, char*);
+using fGetNextSceneEventIDOffset = int64_t (__fastcall*)(void*, void*, int, bool);
 
 namespace fn {
 	extern fGetCCStrike15ItemSystem CSource2Client__GetCCStrike15ItemSystem;
@@ -29,6 +30,7 @@ namespace fn {
 	extern fUpdateViewmodelAttachments UpdateViewmodelAttachments;
 	extern fCEconItemSchema__GetAttributeDefinitionByName CEconItemSchema__GetAttributeDefinitionByName;
 	extern fRegenerateAllWeaponSkins RegenerateAllWeaponSkins;
+	extern fGetNextSceneEventIDOffset GetNextSceneEventIDOffset;
 }
 
 bool InitializeFunctions();

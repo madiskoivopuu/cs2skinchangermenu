@@ -33,6 +33,14 @@ constexpr auto MASK_LOCALPLAYER_PTRPTR1 = "xxxxxx????xxxx";
 constexpr auto OFFSETSTART_LOCALPLAYER_PTRPTR1 = 6;
 constexpr auto OFFSETEND_LOCALPLAYER_PTRPTR1 = 3 + 7;
 
+// GetNextSceneEventIDOffset() relative call
+// found by string: default_glove_arm_model
+// found by xref: xref the function, it will be together with nametag and stattrak attachment update funcs 
+constexpr auto PATTERN_GETNEXTSCENEEVENTOFFSET_PTR_OFFSET = "\xe8\x00\x00\x00\x00\x4c\x63\xf0\x49\xc1\xe6";
+constexpr auto MASK_GETNEXTSCENEEVENTOFFSET_PTR_OFFSET = "x????xxxxxx";
+constexpr auto OFFSETSTART_GETNEXTSCENEEVENTOFFSET = 1;
+constexpr auto OFFSETEND_GETNEXTSCENEEVENTOFFSET = 5;
+
 // C_CSPlayerPawn::CreateMove(CUserCmd*, CUserCmd*) (potentially)
 // found by: looking inside CClientInput virtual function, where there's a string "cl: %d -------------------"
 // player pawn call is above a lot of if checks with |= assignments
