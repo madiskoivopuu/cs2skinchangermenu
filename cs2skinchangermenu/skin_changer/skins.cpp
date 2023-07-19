@@ -50,6 +50,9 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 		// skin
 		if (attr.m_iAttributeDefinitionIndex() == 6 && attr.m_flValue() != static_cast<float>(skinPref.paintKitID))
 			return true;
+		// pattern id
+		if (attr.m_iAttributeDefinitionIndex() == 7 && attr.m_flValue() != static_cast<float>(skinPref.seed))
+			return true;
 		// float
 		if (attr.m_iAttributeDefinitionIndex() == 8 && attr.m_flValue() != skinPref.wearValue)
 			return true;
