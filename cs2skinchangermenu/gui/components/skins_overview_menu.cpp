@@ -11,10 +11,13 @@
 
 #include "helpers/skins_overview_helper.h"
 
+#include <iostream>
+
 enum class Window : int {
     SkinsList,
     SingleSkinSettings,
-	StickerSearch
+	StickerSearch,
+	SkinSearch
 };
 struct WindowState {
 	Window prevWindow = Window::SkinsList;
@@ -255,6 +258,47 @@ TextureCache notAvailableSymbol({
 		0x60, 0x82
 	});
 
+char* stristr(const char* str1, const char* str2)
+{
+	const char* p1 = str1;
+	const char* p2 = str2;
+	const char* r = *p2 == 0 ? str1 : 0;
+
+	while (*p1 != 0 && *p2 != 0)
+	{
+		if (tolower((unsigned char)*p1) == tolower((unsigned char)*p2))
+		{
+			if (r == 0)
+			{
+				r = p1;
+			}
+
+			p2++;
+		}
+		else
+		{
+			p2 = str2;
+			if (r != 0)
+			{
+				p1 = r + 1;
+			}
+
+			if (tolower((unsigned char)*p1) == tolower((unsigned char)*p2))
+			{
+				r = p1;
+				p2++;
+			}
+			else
+			{
+				r = 0;
+			}
+		}
+
+		p1++;
+	}
+
+	return *p2 == 0 ? (char*)r : 0;
+}
 
 void SingleSkinSettingsLeftPanel() {
 	// LEFT SIDE DRAWING | skin, weapon name, quick/important settings
@@ -265,7 +309,7 @@ void SingleSkinSettingsLeftPanel() {
 
 		std::string weaponTextureName = GetSkinImageNameForSkinPreference(*windowState.currSkinPref);
 		TextureCache& weaponTexture = skins_cache::weaponSkins[fnv::Hash(weaponTextureName.c_str())];
-		DrawImageBox(gui::nuklearCtx, weaponTexture.Get(), weaponTexture.Width(), weaponTexture.Height());
+		DrawImageBox(gui::nuklearCtx, weaponTexture);
 
 		// next row, big box with weapon name and important settings
 		//nk_layout_row_dynamic(gui::nuklearCtx, bounds.w, 1);
@@ -311,19 +355,6 @@ void SingleSkinSettingsLeftPanel() {
 	}
 }
 
-/*// top size back btn and search bar
-{
-	nk_layout_row_static(gui::nuklearCtx, 25, 75, 1);
-	if (nk_button_label(gui::nuklearCtx, "<- Back"))
-		windowState.PrevWindow();
-
-	nk_layout_row_static(gui::nuklearCtx, 25, 75, 1);
-	nk_layout_row_dynamic(gui::nuklearCtx, 25, 2);
-	nk_label(gui::nuklearCtx, "Search", NK_TEXT_ALIGN_LEFT);
-
-	nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, windowState.searchString, sizeof(windowState.searchString) - 1, nk_filter_default);
-}*/
-
 void SingleSkinSettingsMiddleStickerPanel() {
 	int MAX_STICKER_COUNT = 4;
 	if (nk_group_begin(gui::nuklearCtx, "singleskin_stickers", 0)) {
@@ -331,8 +362,18 @@ void SingleSkinSettingsMiddleStickerPanel() {
 
 		for (int i = 0; i < MAX_STICKER_COUNT; i++) {
 			nk_layout_row_static(gui::nuklearCtx, bounds.w, bounds.w, 1);
-			if (DrawImageBoxBtn(gui::nuklearCtx, "", notAvailableSymbol.Get(), notAvailableSymbol.Width(), notAvailableSymbol.Height()))
+			Sticker sticker = windowState.currSkinPref->stickers[i];
+			TextureCache* texture = &notAvailableSymbol;
+			if (sticker.id != -1) {
+				std::optional<CStickerKit*> stickerKit = cache::stickerKits.FindByKey(sticker.id);
+				if (stickerKit.has_value()) 
+					texture = &skins_cache::weaponSkins[fnv::Hash(GetStickerKitTextureName(stickerKit.value()))];
+			}
+
+			if (DrawImageBoxBtn(gui::nuklearCtx, "", *texture)) {
+				windowState.modifyingSickerNum = i;
 				windowState.SetWindow(Window::StickerSearch);
+			}
 		}
 
 		nk_group_end(gui::nuklearCtx);
@@ -354,7 +395,9 @@ void SingleSkinSettingsRightPanel() {
 			nk_edit_string(gui::nuklearCtx, NK_TEXT_EDIT_MODE_VIEW, const_cast<char*>(skinName.c_str()), &len, len, nk_filter_default);
 
 			nk_layout_row_push(gui::nuklearCtx, 0.25f);
-			nk_button_label(gui::nuklearCtx, "Change");
+			if (nk_button_label(gui::nuklearCtx, "Change")) {
+				windowState.SetWindow(Window::SkinSearch);
+			}
 
 			nk_layout_row_end(gui::nuklearCtx);
 		}
@@ -372,7 +415,7 @@ void SingleSkinSettingsRightPanel() {
 			strcpy_s(patternSeed, sizeof(patternSeed), pattern.c_str());
 
 			nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, patternSeed, sizeof(patternSeed), nk_filter_decimal);
-			if (strlen(patternSeed) > 0)
+			if (strlen(patternSeed) > 0 && isdigit(patternSeed[0])) // fix for no characters or negative numbers
 				windowState.currSkinPref->seed = std::stoi(patternSeed);
 			else
 				windowState.currSkinPref->seed = 0;
@@ -419,7 +462,7 @@ void SingleSkinSettingsRightPanel() {
 				strcpy_s(killsCount, sizeof(killsCount), kills.c_str());
 
 				nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, killsCount, sizeof(killsCount), nk_filter_decimal);
-				if (strlen(killsCount) > 0)
+				if (strlen(killsCount) > 0 && isdigit(killsCount[0])) // fix for no characters or negative numbers
 					windowState.currSkinPref->stattrakKills = std::stoi(killsCount);
 				else
 					windowState.currSkinPref->stattrakKills = 0;
@@ -437,6 +480,7 @@ void SingleSkinSettingsRightPanel() {
 
 			nk_layout_row_push(gui::nuklearCtx, 0.7f);
 			nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, windowState.currSkinPref->nametag, sizeof(windowState.currSkinPref->nametag), nk_filter_default);
+			std::cout << windowState.currSkinPref->nametag << std::endl;
 
 			nk_layout_row_end(gui::nuklearCtx);
 		}
@@ -449,7 +493,7 @@ void DrawSingleSkinSettings() {
 	if (nk_group_begin(gui::nuklearCtx, "singleskin", 0)) {
 		nk_layout_row_static(gui::nuklearCtx, 25, 75, 1);
 		if (nk_button_label(gui::nuklearCtx, "<- Back"))
-			windowState.PrevWindow(); // next frame will have the previous window
+			windowState.SetWindow(Window::SkinsList); // next frame will have the previous window
 
 		nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, nk_window_get_height(gui::nuklearCtx)-50, 3);
 		nk_layout_row_push(gui::nuklearCtx, 0.3f);
@@ -473,7 +517,8 @@ void DrawSkinsOverview() {
 
     if (nk_group_begin(gui::nuklearCtx, "skins_menu", 0)) {
         // 5 rectangular items per row
-        float skinPrefBoxSize = (0.75f * nk_window_get_width(gui::nuklearCtx)) / SKINS_PER_ROW;
+		struct nk_rect bounds = nk_layout_widget_bounds(gui::nuklearCtx);
+        float skinPrefBoxSize = bounds.w / SKINS_PER_ROW;
         nk_layout_row_dynamic(gui::nuklearCtx, skinPrefBoxSize, SKINS_PER_ROW);
 
 		for (SkinPreference& pref : skins_cache::loadoutAllPresets) {
@@ -481,13 +526,13 @@ void DrawSkinsOverview() {
 			std::string weaponTextureName = GetSkinImageNameForSkinPreference(pref);
 
 			TextureCache& loadedTex = skins_cache::weaponSkins[fnv::Hash(weaponTextureName.c_str())];
-			if (DrawImageBoxBtn(gui::nuklearCtx, displayName, loadedTex.Get(), loadedTex.Width(), loadedTex.Height())) {
+			if (DrawImageBoxBtn(gui::nuklearCtx, displayName, loadedTex)) {
 				windowState.SetWindow(Window::SingleSkinSettings);
 				windowState.currSkinPref = &pref;
 			}
 		}
 
-		if(DrawImageBoxBtn(gui::nuklearCtx, "Add new skin", plusSymbol.Get(), plusSymbol.Width(), plusSymbol.Height())) {
+		if(DrawImageBoxBtn(gui::nuklearCtx, "Add new skin", plusSymbol)) {
 			windowState.SetWindow(Window::SingleSkinSettings);
 			windowState.currSkinPref = CreateAndActivateNewPreference();
 		}
@@ -496,11 +541,145 @@ void DrawSkinsOverview() {
     }
 }
 
+void DrawStickerSearch() {
+	int STICKERS_PER_ROW = 4;
+	int SEARCHBAR_HEIGHT = 25;
+
+	if(nk_group_begin(gui::nuklearCtx, "sticker_searchbar", NK_WINDOW_NO_SCROLLBAR)) {
+		// header with back button and search
+		{
+			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, SEARCHBAR_HEIGHT, 4);
+			nk_layout_row_push(gui::nuklearCtx, 0.1f);
+			if (nk_button_label(gui::nuklearCtx, "<- Back"))
+				windowState.PrevWindow();
+
+			nk_layout_row_push(gui::nuklearCtx, 0.2f);
+			nk_label(gui::nuklearCtx, "", 0);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.1f);
+			nk_label(gui::nuklearCtx, "Search", NK_TEXT_ALIGN_LEFT);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.6f);
+			nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, windowState.searchString, sizeof(windowState.searchString), nk_filter_default);
+
+			nk_layout_row_end(gui::nuklearCtx);
+		}
+
+		// stickers list
+		float listHeight = nk_window_get_height(gui::nuklearCtx) - SEARCHBAR_HEIGHT - 4 * gui::nuklearCtx->style.window.padding.y;
+		nk_layout_row_dynamic(gui::nuklearCtx, listHeight, 1);
+		if (nk_group_begin(gui::nuklearCtx, "stickers_list", NK_WINDOW_MOVABLE)) {
+			struct nk_rect bounds = nk_layout_widget_bounds(gui::nuklearCtx);
+			float stickerBoxSize = bounds.w / STICKERS_PER_ROW;
+			nk_layout_row_dynamic(gui::nuklearCtx, stickerBoxSize, STICKERS_PER_ROW);
+
+			if (DrawImageBoxBtn(gui::nuklearCtx, "None", notAvailableSymbol)) {
+				windowState.currSkinPref->stickers[windowState.modifyingSickerNum].id = -1;
+				windowState.PrevWindow();
+			}
+
+			for (CUtlMap<int, CStickerKit*>::Node_t stickerKitNode : cache::stickerKits) {
+				CStickerKit* stickerKit = stickerKitNode.m_value;
+				if (stickerKit->id <= 1)
+					continue;
+
+				std::string stickerKitTranslatedName = cache::englishTranslations[&stickerKit->stickerKitNameTranslationTag[1]];
+				if (strlen(windowState.searchString) > 0 && !stristr(stickerKitTranslatedName.c_str(), windowState.searchString))
+					continue;
+
+				// display sticker as button
+
+				TextureCache& stickerTexture = skins_cache::weaponSkins[fnv::Hash(GetStickerKitTextureName(stickerKit))];
+				if (DrawImageBoxBtn(gui::nuklearCtx, stickerKitTranslatedName, stickerTexture)) {
+					windowState.currSkinPref->stickers[windowState.modifyingSickerNum].id = stickerKit->id;
+					windowState.PrevWindow();
+				}
+			}
+			nk_group_end(gui::nuklearCtx);
+		}
+
+		nk_group_end(gui::nuklearCtx);
+	}
+}
+
+void DrawSkinsSearch() {
+	int STICKERS_PER_ROW = 4;
+	int SEARCHBAR_HEIGHT = 25;
+
+	if (nk_group_begin(gui::nuklearCtx, "skins_searchbar", NK_WINDOW_NO_SCROLLBAR)) {
+		// header with back button and search
+		{
+			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, SEARCHBAR_HEIGHT, 4);
+			nk_layout_row_push(gui::nuklearCtx, 0.1f);
+			if (nk_button_label(gui::nuklearCtx, "<- Back"))
+				windowState.PrevWindow();
+
+			nk_layout_row_push(gui::nuklearCtx, 0.2f);
+			nk_label(gui::nuklearCtx, "", 0);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.1f);
+			nk_label(gui::nuklearCtx, "Search", NK_TEXT_ALIGN_LEFT);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.6f);
+			nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, windowState.searchString, sizeof(windowState.searchString), nk_filter_default);
+
+			nk_layout_row_end(gui::nuklearCtx);
+		}
+
+		// stickers list
+		float listHeight = nk_window_get_height(gui::nuklearCtx) - SEARCHBAR_HEIGHT - 4 * gui::nuklearCtx->style.window.padding.y;
+		nk_layout_row_dynamic(gui::nuklearCtx, listHeight, 1);
+		if (nk_group_begin(gui::nuklearCtx, "skins_list", NK_WINDOW_MOVABLE)) {
+			struct nk_rect bounds = nk_layout_widget_bounds(gui::nuklearCtx);
+			float skinBoxSize = bounds.w / STICKERS_PER_ROW;
+			nk_layout_row_dynamic(gui::nuklearCtx, skinBoxSize, STICKERS_PER_ROW);
+
+			if (DrawImageBoxBtn(gui::nuklearCtx, "None", notAvailableSymbol)) {
+				windowState.currSkinPref->paintKitID = -1;
+				windowState.PrevWindow();
+			}
+
+			std::vector<uint32_t>& paintkitIDs = skins_cache::paintkitsForWeapons[windowState.currSkinPref->weaponID];
+			SkinPreference prefCopy = *windowState.currSkinPref;
+			for (uint32_t id : paintkitIDs) {
+				if (id <= 1)
+					continue;
+				prefCopy.paintKitID = id;
+
+				std::optional<CPaintKit*> paintKit = cache::paintKits.FindByKey(id);
+				if (!paintKit.has_value())
+					continue;
+
+				std::string paintKitTranslatedName = cache::englishTranslations[&paintKit.value()->paintKitNameTag[1]];
+				if (strlen(windowState.searchString) > 0 && !stristr(paintKitTranslatedName.c_str(), windowState.searchString))
+					continue;
+
+				// display sticker as button
+				std::string paintKitTextureName = GetSkinImageNameForSkinPreference(prefCopy);
+				TextureCache& stickerTexture = skins_cache::weaponSkins[fnv::Hash(paintKitTextureName.c_str())];
+				if (DrawImageBoxBtn(gui::nuklearCtx, paintKitTranslatedName, stickerTexture)) {
+					windowState.currSkinPref->paintKitID = id;
+					windowState.PrevWindow();
+				}
+			}
+			nk_group_end(gui::nuklearCtx);
+		}
+
+		nk_group_end(gui::nuklearCtx);
+	}
+}
+
 void DrawSkinChangerMenu() {
     switch (windowState.currActiveWindow) {
     case Window::SkinsList:
         DrawSkinsOverview();
         break;
+	case Window::SkinSearch:
+		DrawSkinsSearch();
+
+	case Window::StickerSearch:
+		DrawStickerSearch();
+		break;
     case Window::SingleSkinSettings:
 		DrawSingleSkinSettings();
         break;

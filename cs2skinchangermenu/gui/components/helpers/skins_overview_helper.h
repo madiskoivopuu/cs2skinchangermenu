@@ -37,6 +37,11 @@ const char* ImageForFloat(float wear) {
 		return "heavy";
 }
 
+char* GetStickerKitTextureName(CStickerKit* stickerKit) {
+	char* actualStickerTextureName = strrchr(stickerKit->stickerKitVpkFile, '/') + 1;
+	return actualStickerTextureName;
+}
+
 std::string GetSkinNameForSkinPreference(SkinPreference pref) {
 	std::string skinName = "";
 
@@ -51,33 +56,6 @@ std::string GetSkinNameForSkinPreference(SkinPreference pref) {
 
 std::string GetSkinImageNameForSkinPreference(SkinPreference pref) {
 	std::string imageName = "";
-
-	std::optional<CCStrike15ItemDefinition*> itemDef = cache::weaponDefs.FindByKey(pref.weaponID);
-	if (itemDef.has_value())
-		imageName.append(
-			itemDef.value()->GetSubcategory()
-		);
-
-	if (pref.paintKitID != -1) {
-		imageName.append("_");
-
-		std::optional<CPaintKit*> paintkitDef = cache::paintKits.FindByKey(pref.paintKitID);
-		if (paintkitDef.has_value())
-			imageName.append(
-				paintkitDef.value()->paintKitName
-			);
-
-		imageName.append("_");
-		imageName.append(ImageForFloat(pref.wearValue));
-	}
-
-	return imageName;
-}
-
-std::string GetStickerImageNameForSkinPreference(SkinPreference pref, int index) {
-	std::string imageName = "";
-	if (pref.stickers[index].id == 0)
-		return imageName;
 
 	std::optional<CCStrike15ItemDefinition*> itemDef = cache::weaponDefs.FindByKey(pref.weaponID);
 	if (itemDef.has_value())

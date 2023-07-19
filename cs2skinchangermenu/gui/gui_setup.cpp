@@ -15,6 +15,7 @@
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_INDEX_BUFFER 128 * 1024
 #include "gui_setup.h"
+#include "gui_main.h"
 #include "nuklear-gui/nuklear.h"
 #include "nuklear-gui/nuklear_d3d11.h"
 #include <iostream>
@@ -135,7 +136,7 @@ void DestroyGUI() {
 // Window Process callback
 LRESULT CALLBACK WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	if (nk_d3d11_handle_event(wnd, msg, wparam, lparam))
+	if (gui::menuOpen && nk_d3d11_handle_event(wnd, msg, wparam, lparam))
 		return 1L;
 
 	//nk_d3d11_handle_event(wnd, msg, wparam, lparam);

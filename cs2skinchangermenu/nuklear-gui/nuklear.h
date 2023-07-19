@@ -218,6 +218,7 @@
 */
 
 #include <string>
+#include "skin_changer/TextureCache.h"
 
 #ifndef NK_SINGLE_FILE
   #define NK_SINGLE_FILE
@@ -29664,12 +29665,15 @@ struct nk_rect FormatImageBounds(struct nk_rect widgetBounds, int width, int hei
 //~~~~~~~~~~~~~~
 // Draws a rectangular button for the weapon skins menu.
 // TODO: add parameters
-bool DrawImageBoxBtn(nk_context* ctx, std::string text, void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
+bool DrawImageBoxBtn(nk_context* ctx, std::string text, TextureCache& texture) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return false;
 
     struct nk_rect widgetBounds;
     enum nk_widget_layout_states layoutState = nk_widget(&widgetBounds, ctx);
+    if (!layoutState)
+        return false;
+
 
     const struct nk_input* in = (layoutState == NK_WIDGET_ROM || ctx->current->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
 
@@ -29719,9 +29723,9 @@ bool DrawImageBoxBtn(nk_context* ctx, std::string text, void* image, int width, 
     imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
     imageBounds.h = (textBounds.y - widgetBounds.y) - 2*IMG_PADDING_XY;
 
-    if (image) {
-        struct nk_rect newImageBounds = FormatImageBounds(imageBounds, width, height);
-        struct nk_image img = nk_image_ptr(image);
+    if (texture.Get()) {
+        struct nk_rect newImageBounds = FormatImageBounds(imageBounds, texture.Width(), texture.Height());
+        struct nk_image img = nk_image_ptr(texture.Get());
         nk_draw_image(&ctx->current->buffer, newImageBounds, &img, nk_white);
     }
 
@@ -29733,12 +29737,14 @@ bool DrawImageBoxBtn(nk_context* ctx, std::string text, void* image, int width, 
 
 // Draws a rectangular box for a weapon skin
 // TODO: add parameters
-void DrawImageBox(nk_context* ctx,void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
+void DrawImageBox(nk_context* ctx, TextureCache& texture) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return;
 
     struct nk_rect widgetBounds;
     enum nk_widget_layout_states layoutState = nk_widget(&widgetBounds, ctx);
+    if (!layoutState)
+        return;
 
     // drawing the actual button
     // background of btn
@@ -29754,9 +29760,9 @@ void DrawImageBox(nk_context* ctx,void* image, int width, int height) { // struc
     imageBounds.y = widgetBounds.y + IMG_PADDING_XY; // text x padding for image to keep it even enough
     imageBounds.h = widgetBounds.h - 2 * IMG_PADDING_XY;
 
-    if (image) {
-        struct nk_rect newImageBounds = FormatImageBounds(imageBounds, width, height);
-        struct nk_image img = nk_image_ptr(image);
+    if (texture.Get()) {
+        struct nk_rect newImageBounds = FormatImageBounds(imageBounds, texture.Width(), texture.Height());
+        struct nk_image img = nk_image_ptr(texture.Get());
         nk_draw_image(&ctx->current->buffer, newImageBounds, &img, nk_white);
     }
     
@@ -29769,8 +29775,8 @@ void DrawImageBox(nk_context* ctx,void* image, int width, int height) { // struc
 
 #endif /* NK_IMPLEMENTATION */
 
-NK_API bool DrawImageBoxBtn(nk_context* ctx, std::string text, void* image, int width, int height);
-NK_API void DrawImageBox(nk_context* ctx, void* image, int width, int height);
+NK_API bool DrawImageBoxBtn(nk_context* ctx, std::string text, TextureCache& texture);
+NK_API void DrawImageBox(nk_context* ctx, TextureCache& texture);
 
 /*
 /// ## License

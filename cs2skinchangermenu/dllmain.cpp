@@ -19,6 +19,10 @@
 #include <Windows.h>
 #include <conio.h>
 
+#include "nuklear-gui/nuklear.h"
+#include "nuklear-gui/nuklear_d3d11.h"
+#include "gui/gui_main.h"
+
 int ExitRoutine(HMODULE hModule, FILE* f) {
     DestroyGUI();
 
@@ -42,7 +46,6 @@ DWORD WINAPI Main(HMODULE hModule) {
         return ExitRoutine(hModule, f);
 
     LoadCache();
-    //std::unordered_map<uint32_t, std::vector<uint32_t>> weaponPaintKits = GetPaintkitsForWeapons(itemSets);
 
     hooks::swapChainPresentHook->Enable();
     hooks::playerPawnCreateMoveHook->Enable();
@@ -56,6 +59,9 @@ DWORD WINAPI Main(HMODULE hModule) {
 
         if (GetAsyncKeyState(VK_END) & 1)
             break;
+
+        if (GetAsyncKeyState(VK_NEXT) & 1)
+            gui::menuOpen = !gui::menuOpen;
     }
 
     PreExitRoutine();

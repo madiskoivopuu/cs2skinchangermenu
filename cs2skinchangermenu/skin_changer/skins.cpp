@@ -44,7 +44,7 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	// check if weapon already has the same skin or float
 	SkinPreference skinPref = *skins_cache::activeLoadout.at(itemDefIndex);
 
-	CAttributeList attrs = weapon->m_AttributeManager().m_Item().m_AttributeList();
+	CAttributeList& attrs = weapon->m_AttributeManager().m_Item().m_AttributeList();
 	for (int i = 0; i < attrs.m_Attributes().Count(); i++) {
 		CEconItemAttribute attr = attrs.m_Attributes().Element(i);
 		// skin
@@ -72,6 +72,9 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	if (strlen(skinPref.nametag) == 0 && !weapon->m_hNametagEntity().IsInvalid())
 		return true;
 
+	if (strcmp(&weapon->m_AttributeManager().m_Item().m_szCustomName(), skinPref.nametag) != 0)
+		return true;
+
 	// check for sticker changes
 	for (int i = 0; i < skinPref.stickers.size(); i++) {
 		std::string formattedName = std::format("sticker slot {} id", i);
@@ -90,14 +93,14 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 }
 
 // Sets the stattrak on our weapon depending whether it is enabled or not
-void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
+void SetStattrak(C_WeaponCSBase* weapon, SkinPreference* pref) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
 
-	if (!pref.useStattrak)
+	if (!pref->useStattrak)
 		return weapon->m_hStattrakEntity().Set(-1);
 
 
-	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater"), static_cast<float>(pref.stattrakKills));
+	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater"), static_cast<float>(pref->stattrakKills));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater score type"), 0.0f);
 
 	//Sleep(100);
@@ -106,23 +109,24 @@ void SetStattrak(C_WeaponCSBase* weapon, SkinPreference pref) {
 
 }
 
-void SetNametag(C_WeaponCSBase* weapon, SkinPreference pref) {
-	if (strlen(pref.nametag) == 0) {
+void SetNametag(C_WeaponCSBase* weapon, SkinPreference* pref) {
+	if (strlen(pref->nametag) == 0) {
 		weapon->m_hNametagEntity().Set(-1);
-		memset(&weapon->m_AttributeManager().m_Item().m_szCustomName(), 0x00, sizeof(pref.nametag));
+		memset(&weapon->m_AttributeManager().m_Item().m_szCustomName(), 0x00, sizeof(pref->nametag));
 	}
 
-	memcpy(&weapon->m_AttributeManager().m_Item().m_szCustomName(), &pref.nametag, sizeof(pref.nametag));
+	weapon->m_hNametagEntity().Set(-1);
+	memcpy(&weapon->m_AttributeManager().m_Item().m_szCustomName(), pref->nametag, sizeof(pref->nametag));
 	fn::SpawnAndSetNametagEnt(&weapon->m_hNametagEntity());
 }
 
-void SetStickers(C_WeaponCSBase* weapon, SkinPreference pref) {
+void SetStickers(C_WeaponCSBase* weapon, SkinPreference* pref) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
 
-	for (int i = 0; i < pref.stickers.size(); i++) {
+	for (int i = 0; i < pref->stickers.size(); i++) {
 		std::string formatted = std::format("sticker slot {} id", i);
 
-		Sticker sticker = pref.stickers[i];
+		Sticker sticker = pref->stickers[i];
 
 		if (sticker.id == -1)
 			weaponEconItem.m_AttributeList().RemoveAttribute(const_cast<char*>(formatted.c_str()));
@@ -134,7 +138,7 @@ void SetStickers(C_WeaponCSBase* weapon, SkinPreference pref) {
 // Adds all necessary attributes etc to the weapon & forcefully updates its skin
 void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
-	SkinPreference pref = *skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
+	SkinPreference* pref = skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
 
 	// add stattrak, nametag and stickers to weapon OR remove them
 	SetStattrak(weapon, pref);
@@ -142,14 +146,14 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	SetStickers(weapon, pref);
 
 	// add skin to weapon
-	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture prefab"), static_cast<float>(pref.paintKitID));
-	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture seed"), static_cast<float>(pref.seed));
-	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref.wearValue);
+	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture prefab"), static_cast<float>(pref->paintKitID));
+	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture seed"), static_cast<float>(pref->seed));
+	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref->wearValue);
 
 	// TODO: add stattrak and nametag attachments later
 	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
 	fn::RegenerateWeaponSkin(weapon);
-	fn::RegenerateAllWeaponSkins(); // updates stickers
+	//fn::RegenerateAllWeaponSkins(); // updates stickers
 	fn::UpdateViewmodelAttachments(viewModel, weapon);
 }
 

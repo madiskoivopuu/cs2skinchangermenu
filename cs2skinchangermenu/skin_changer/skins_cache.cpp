@@ -119,7 +119,7 @@ bool LoadWeaponTextureThumbnails() {
 
         for (vpktool::VPKEntry entry : entries.at(key)) {
             // check if large_png is in the file name
-            std::string suffix("large_png.vtex_c");
+            std::string suffix("_large_png.vtex_c");
             if (entry.filename.size() <= suffix.size() || entry.filename.compare(entry.filename.size() - suffix.size(), suffix.size(), suffix) != 0)
                 continue;
 

@@ -10,7 +10,7 @@ CUtlMap<int, CPaintKit*> CCStrike15ItemSchema::GetPaintKits() {
 
 
 CUtlMap<int, CStickerKit*> CCStrike15ItemSchema::GetStickerKits() {
-	return *reinterpret_cast<CUtlMap<int, CStickerKit*>*>(this + 0x318);
+	return *reinterpret_cast<CUtlMap<int, CStickerKit*>*>(this + 0x310);
 }
 
 CUtlMap<int, CCStrike15ItemDefinition*> CCStrike15ItemSchema::GetWeaponDefinitions() {
