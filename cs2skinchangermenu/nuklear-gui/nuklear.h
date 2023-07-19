@@ -29664,7 +29664,7 @@ struct nk_rect FormatImageBounds(struct nk_rect widgetBounds, int width, int hei
 //~~~~~~~~~~~~~~
 // Draws a rectangular button for the weapon skins menu.
 // TODO: add parameters
-bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
+bool DrawImageBoxBtn(nk_context* ctx, std::string text, void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return false;
 
@@ -29691,17 +29691,25 @@ bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image, int wi
 
     // text at the bottom of btn
     struct nk_rect textBounds;
-    textBounds.x = widgetBounds.x + ctx->style.text.padding.x;
-    textBounds.w = widgetBounds.w - 2*ctx->style.text.padding.x;
-    textBounds.y = widgetBounds.y + widgetBounds.h - ctx->style.font->height - 2*ctx->style.text.padding.y;
-    textBounds.h = widgetBounds.y - textBounds.y;
+    if (text.length()) {
+        textBounds.x = widgetBounds.x + ctx->style.text.padding.x;
+        textBounds.w = widgetBounds.w - 2 * ctx->style.text.padding.x;
+        textBounds.y = widgetBounds.y + widgetBounds.h - ctx->style.font->height - 2 * ctx->style.text.padding.y;
+        textBounds.h = widgetBounds.y - textBounds.y;
 
-    struct nk_text textSettings;
-    textSettings.padding.x = 0;
-    textSettings.padding.y = 0;
-    textSettings.background = ctx->style.window.background;
-    textSettings.text = nk_color(255, 255, 255, 255);
-    nk_widget_text(&ctx->current->buffer, textBounds, text.c_str(), text.length(), &textSettings, NK_TEXT_ALIGN_CENTERED, ctx->style.font);
+        struct nk_text textSettings;
+        textSettings.padding.x = 0;
+        textSettings.padding.y = 0;
+        textSettings.background = ctx->style.window.background;
+        textSettings.text = nk_color(255, 255, 255, 255);
+        nk_widget_text(&ctx->current->buffer, textBounds, text.c_str(), text.length(), &textSettings, NK_TEXT_ALIGN_CENTERED, ctx->style.font);
+    }
+    else {
+        textBounds.x = widgetBounds.x;
+        textBounds.w = 0;
+        textBounds.y = widgetBounds.y + widgetBounds.h;
+        textBounds.h = 0;
+    }
 
     // draw & resize img
     struct nk_rect imageBounds;
@@ -29725,7 +29733,7 @@ bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image, int wi
 
 // Draws a rectangular box for a weapon skin
 // TODO: add parameters
-void DrawWeaponSkinBox(nk_context* ctx,void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
+void DrawImageBox(nk_context* ctx,void* image, int width, int height) { // struct nk_image img, const char* str, nk_flags align
     if (!ctx || !ctx->current)
         return;
 
@@ -29761,8 +29769,8 @@ void DrawWeaponSkinBox(nk_context* ctx,void* image, int width, int height) { // 
 
 #endif /* NK_IMPLEMENTATION */
 
-NK_API bool DrawWeaponSkinButton(nk_context* ctx, std::string text, void* image, int width, int height);
-NK_API void DrawWeaponSkinBox(nk_context* ctx, void* image, int width, int height);
+NK_API bool DrawImageBoxBtn(nk_context* ctx, std::string text, void* image, int width, int height);
+NK_API void DrawImageBox(nk_context* ctx, void* image, int width, int height);
 
 /*
 /// ## License

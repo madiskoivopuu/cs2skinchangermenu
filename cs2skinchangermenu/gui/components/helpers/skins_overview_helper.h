@@ -37,6 +37,18 @@ const char* ImageForFloat(float wear) {
 		return "heavy";
 }
 
+std::string GetSkinNameForSkinPreference(SkinPreference pref) {
+	std::string skinName = "";
+
+	if (pref.paintKitID != -1) {
+		std::optional<CPaintKit*> paintkitDef = cache::paintKits.FindByKey(pref.paintKitID);
+		if (paintkitDef.has_value())
+			skinName = cache::englishTranslations[&paintkitDef.value()->paintKitNameTag[1]];
+	}
+
+	return skinName;
+}
+
 std::string GetSkinImageNameForSkinPreference(SkinPreference pref) {
 	std::string imageName = "";
 

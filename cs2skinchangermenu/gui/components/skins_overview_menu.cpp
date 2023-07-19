@@ -13,12 +13,15 @@
 
 enum class Window : int {
     SkinsList,
-    SingleSkinSettings
+    SingleSkinSettings,
+	StickerSearch
 };
 struct WindowState {
 	Window prevWindow = Window::SkinsList;
     Window currActiveWindow = Window::SkinsList;
 	SkinPreference* currSkinPref = nullptr;
+	char searchString[64];
+	int modifyingSickerNum;
 
 	void SetWindow(Window win) {
 		this->prevWindow = this->currActiveWindow;
@@ -254,27 +257,30 @@ TextureCache notAvailableSymbol({
 
 void SingleSkinSettingsLeftPanel() {
 	// LEFT SIDE DRAWING | skin, weapon name, quick/important settings
-	if (nk_group_begin(gui::nuklearCtx, "skin_main_info", 0)) {
+	if (nk_group_begin(gui::nuklearCtx, "singleskin_mainsettings", 0)) {
 		struct nk_rect bounds = nk_layout_widget_bounds(gui::nuklearCtx);
 		// skin view row (1 item)
 		nk_layout_row_dynamic(gui::nuklearCtx, bounds.w, 1);
 
 		std::string weaponTextureName = GetSkinImageNameForSkinPreference(*windowState.currSkinPref);
 		TextureCache& weaponTexture = skins_cache::weaponSkins[fnv::Hash(weaponTextureName.c_str())];
-		DrawWeaponSkinBox(gui::nuklearCtx, weaponTexture.Get(), weaponTexture.Width(), weaponTexture.Height());
+		DrawImageBox(gui::nuklearCtx, weaponTexture.Get(), weaponTexture.Width(), weaponTexture.Height());
 
 		// next row, big box with weapon name and important settings
 		//nk_layout_row_dynamic(gui::nuklearCtx, bounds.w, 1);
 		std::string displayName = CreateDisplayName(*windowState.currSkinPref);
+
+		nk_style_push_color(gui::nuklearCtx, &gui::nuklearCtx->style.window.fixed_background.data.color, nk_color(48, 48, 48, 255));
 		if (nk_group_begin_titled(gui::nuklearCtx, "skin_main_info", displayName.c_str(), NK_WINDOW_TITLE | NK_WINDOW_NO_SCROLLBAR)) {
+			nk_style_pop_color(gui::nuklearCtx);
+
 			struct nk_rect bounds = nk_layout_widget_bounds(gui::nuklearCtx);
 			nk_layout_row_static(gui::nuklearCtx, 30, bounds.w-20, 1);
 
+			// skin enabled checkbox
 			auto mapIter = skins_cache::activeLoadout.find(windowState.currSkinPref->weaponID);
 			bool bEnabled = mapIter != skins_cache::activeLoadout.end() && mapIter->second == windowState.currSkinPref;
-			int bEnabledNow = static_cast<int>(!bEnabled);
-
-			// check if value has changed
+			int bEnabledNow = static_cast<int>(!bEnabled); // nk_true is 0 for some shitty reason
 			if (nk_checkbox_text(gui::nuklearCtx, "Skin enabled", strlen("Skin enabled"), &bEnabledNow)) {
 				if (!bEnabled && !static_cast<bool>(bEnabledNow))
 					skins_cache::activeLoadout[windowState.currSkinPref->weaponID] = &*windowState.currSkinPref;
@@ -283,8 +289,85 @@ void SingleSkinSettingsLeftPanel() {
 					skins_cache::activeLoadout.erase(mapIter);
 			}
 
+			nk_layout_row_dynamic(gui::nuklearCtx, 30, 2);
+			int bEnabledCT = static_cast<int>(!windowState.currSkinPref->enabledCT);
+			int bEnabledT = static_cast<int>(!windowState.currSkinPref->enabledT);
+			if (nk_checkbox_text(gui::nuklearCtx, "CT", strlen("CT"), &bEnabledCT))
+				windowState.currSkinPref->enabledCT = !windowState.currSkinPref->enabledCT;
+
+			if (nk_checkbox_text(gui::nuklearCtx, "T", strlen("T"), &bEnabledT))
+				windowState.currSkinPref->enabledT = !windowState.currSkinPref->enabledT;
+
+			nk_layout_row_static(gui::nuklearCtx, 30, bounds.w, 1);
+			int bOverridePickedUpSkin = static_cast<int>(!windowState.currSkinPref->overridePickedUpWeaponSkin);
+			if (nk_checkbox_text(gui::nuklearCtx, "Override picked up skins", strlen("Override picked up skins"), &bOverridePickedUpSkin))
+				windowState.currSkinPref->overridePickedUpWeaponSkin = !windowState.currSkinPref->overridePickedUpWeaponSkin;
 
 			nk_group_end(gui::nuklearCtx);
+		}
+
+		nk_group_end(gui::nuklearCtx);
+	}
+}
+
+/*// top size back btn and search bar
+{
+	nk_layout_row_static(gui::nuklearCtx, 25, 75, 1);
+	if (nk_button_label(gui::nuklearCtx, "<- Back"))
+		windowState.PrevWindow();
+
+	nk_layout_row_static(gui::nuklearCtx, 25, 75, 1);
+	nk_layout_row_dynamic(gui::nuklearCtx, 25, 2);
+	nk_label(gui::nuklearCtx, "Search", NK_TEXT_ALIGN_LEFT);
+
+	nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, windowState.searchString, sizeof(windowState.searchString) - 1, nk_filter_default);
+}*/
+
+void SingleSkinSettingsMiddleStickerPanel() {
+	int MAX_STICKER_COUNT = 4;
+	if (nk_group_begin(gui::nuklearCtx, "singleskin_stickers", 0)) {
+		struct nk_rect bounds = nk_layout_widget_bounds(gui::nuklearCtx);
+
+		for (int i = 0; i < MAX_STICKER_COUNT; i++) {
+			nk_layout_row_static(gui::nuklearCtx, bounds.w, bounds.w, 1);
+			if (DrawImageBoxBtn(gui::nuklearCtx, "", notAvailableSymbol.Get(), notAvailableSymbol.Width(), notAvailableSymbol.Height()))
+				windowState.SetWindow(Window::StickerSearch);
+		}
+
+		nk_group_end(gui::nuklearCtx);
+	}
+}
+
+void SingleSkinSettingsRightPanel() {
+	if (nk_group_begin(gui::nuklearCtx, "singleskin_settings", 0)) {
+		// current paintkit row
+		{
+			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, 25, 3);
+			nk_layout_row_push(gui::nuklearCtx, 0.25f);
+			nk_label(gui::nuklearCtx, "Current skin", NK_TEXT_ALIGN_LEFT);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.5f);
+			std::string skinName = GetSkinNameForSkinPreference(*windowState.currSkinPref);
+			int len = static_cast<int>(skinName.length()) + 1;
+			nk_edit_string(gui::nuklearCtx, NK_TEXT_EDIT_MODE_VIEW, const_cast<char*>(skinName.c_str()), &len, len, nk_filter_default);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.25f);
+			nk_button_label(gui::nuklearCtx, "Change");
+		}
+
+		// current wear
+		{
+			nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, 25, 3);
+			nk_layout_row_push(gui::nuklearCtx, 0.2f);
+			nk_label(gui::nuklearCtx, "Skin wear", NK_TEXT_ALIGN_LEFT);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.7f);
+			nk_slider_float(gui::nuklearCtx, 0.0f, &windowState.currSkinPref->wearValue, 1.0f, 0.01f);
+
+			nk_layout_row_push(gui::nuklearCtx, 0.1f);
+			std::string wearStr = std::to_string(windowState.currSkinPref->wearValue);
+			wearStr.resize(4, '0');
+			nk_label(gui::nuklearCtx, wearStr.c_str(), NK_TEXT_ALIGN_CENTERED);
 		}
 
 		nk_group_end(gui::nuklearCtx);
@@ -297,13 +380,17 @@ void DrawSingleSkinSettings() {
 		if (nk_button_label(gui::nuklearCtx, "<- Back"))
 			windowState.PrevWindow(); // next frame will have the previous window
 
-		nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, nk_window_get_height(gui::nuklearCtx)-50, 2);
+		nk_layout_row_begin(gui::nuklearCtx, NK_DYNAMIC, nk_window_get_height(gui::nuklearCtx)-50, 3);
 		nk_layout_row_push(gui::nuklearCtx, 0.3f);
 		SingleSkinSettingsLeftPanel();
 
+		// middle panel for stickers
+		nk_layout_row_push(gui::nuklearCtx, 0.16f);
+		SingleSkinSettingsMiddleStickerPanel();
+
 		// RIGHT SIDE DRAWING | skin choice, stattrak, wear, float, name
-		nk_layout_row_push(gui::nuklearCtx, 0.7f);
-		nk_label(gui::nuklearCtx, "nub", NK_TEXT_ALIGN_LEFT);
+		nk_layout_row_push(gui::nuklearCtx, 0.54f);
+		SingleSkinSettingsRightPanel();
 
 		nk_layout_row_end(gui::nuklearCtx);
 		nk_group_end(gui::nuklearCtx);
@@ -323,13 +410,13 @@ void DrawSkinsOverview() {
 			std::string weaponTextureName = GetSkinImageNameForSkinPreference(pref);
 
 			TextureCache& loadedTex = skins_cache::weaponSkins[fnv::Hash(weaponTextureName.c_str())];
-			if (DrawWeaponSkinButton(gui::nuklearCtx, displayName, loadedTex.Get(), loadedTex.Width(), loadedTex.Height())) {
+			if (DrawImageBoxBtn(gui::nuklearCtx, displayName, loadedTex.Get(), loadedTex.Width(), loadedTex.Height())) {
 				windowState.SetWindow(Window::SingleSkinSettings);
 				windowState.currSkinPref = &pref;
 			}
 		}
 
-		if(DrawWeaponSkinButton(gui::nuklearCtx, "Add new skin", plusSymbol.Get(), plusSymbol.Width(), plusSymbol.Height())) {
+		if(DrawImageBoxBtn(gui::nuklearCtx, "Add new skin", plusSymbol.Get(), plusSymbol.Width(), plusSymbol.Height())) {
 			windowState.SetWindow(Window::SingleSkinSettings);
 			windowState.currSkinPref = CreateAndActivateNewPreference();
 		}
