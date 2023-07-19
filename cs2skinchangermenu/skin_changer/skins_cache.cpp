@@ -106,10 +106,7 @@ bool LoadWeaponTextureThumbnails() {
     // load regular weapons to our cache
     for (vpktool::VPKEntry entry : entries.at("panorama/images/econ/weapons/base_weapons")) {
         // check if large_png is in the file name
-        std::string suffix("large_png.vtex_c");
-        if (entry.filename.size() <= suffix.size() || entry.filename.compare(entry.filename.size() - suffix.size(), suffix.size(), suffix) != 0)
-            continue;
-
+        std::string suffix("_png.vtex_c");
         std::string cacheKey = entry.filename.substr(0, entry.filename.size() - suffix.size());
         TextureCache cache = { entry };
         skins_cache::weaponSkins[fnv::Hash(cacheKey.c_str())] = cache;
