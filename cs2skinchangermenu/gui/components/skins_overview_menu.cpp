@@ -480,7 +480,6 @@ void SingleSkinSettingsRightPanel() {
 
 			nk_layout_row_push(gui::nuklearCtx, 0.7f);
 			nk_edit_string_zero_terminated(gui::nuklearCtx, NK_EDIT_FIELD, windowState.currSkinPref->nametag, sizeof(windowState.currSkinPref->nametag), nk_filter_default);
-			std::cout << windowState.currSkinPref->nametag << std::endl;
 
 			nk_layout_row_end(gui::nuklearCtx);
 		}

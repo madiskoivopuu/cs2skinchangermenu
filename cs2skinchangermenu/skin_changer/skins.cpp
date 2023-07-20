@@ -15,6 +15,8 @@
 #include <format>
 
 namespace skins {
+	const int ID_GLOVE_PREFERENCE = 9005;
+	const int ID_KNIFE_PREFERENCE = 9006;
 	bool regenViewmodel = false;
 }
 
@@ -100,7 +102,7 @@ void ForceStattrakUpdate(C_CSGOViewModel* viewModel) {
 	int64_t offset = fn::GetNextSceneEventIDOffset(&viewModel->m_nNextSceneEventId(), &magicNr, magicNr, false);
 
 	uint8_t* dataLoc = *reinterpret_cast<uint8_t**>(&viewModel->m_nNextSceneEventId()) + offset * 0x10;
-	*reinterpret_cast<int*>(dataLoc + 0xc) = 15;
+	*reinterpret_cast<int*>(dataLoc + 0xc) += 1;
 }
 
 // Sets the stattrak on our weapon depending whether it is enabled or not
@@ -118,7 +120,8 @@ void SetStattrak(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, SkinPrefere
 	if (weapon->m_hStattrakEntity().IsInvalid())
 		fn::SpawnAndSetStattrakEnt(&weapon->m_hStattrakEntity());
 
-	ForceStattrakUpdate(viewModel);
+	// TODO: find better method for this
+	//ForceStattrakUpdate(viewModel);
 }
 
 void SetNametag(C_WeaponCSBase* weapon, SkinPreference* pref) {
@@ -197,16 +200,21 @@ void ApplySkins() {
 	pawn->m_EconGloves().m_iItemIDHigh() = -1;
 	pawn->m_EconGloves().SetAttributeValueByName("set item texture prefab", 0.0f);
 	pawn->m_EconGloves().SetAttributeValueByName("set item texture seed", 0.0f);
-	pawn->m_EconGloves().SetAttributeValueByName("set item texture wear", 0.0f);
+	pawn->m_EconGloves().SetAttributeValueByName("set item texture wear", 0.8f);
 
 	pawn->m_EconGloves().m_bInitialized() = true;
 	pawn->m_bNeedToReApplyGloves() = true;
 
 	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
 	if(weapon != nullptr) {
+		weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
+		viewModel->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
+
 		if (!ShouldUpdateSkin(pawn, weapon))
 			return;
 
+		//std::cout << weapon->m_pGameSceneNode() << std::endl;
+		//std::cout << &weapon->m_pCBodyComponent()->m_skeletonInstance().m_modelState().m_MeshGroupMask() << std::endl;
 		SetAndUpdateSkin(viewModel, weapon);
 	}
 }

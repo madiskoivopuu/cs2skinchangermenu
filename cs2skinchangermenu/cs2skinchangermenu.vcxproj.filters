@@ -204,6 +204,15 @@
     <ClInclude Include="sdk\econ\CStickerKit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sdk\gameclasses\CBodyComponentSkeletonInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\gameclasses\CSkeletonInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\gameclasses\CModelState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

@@ -6,6 +6,7 @@
 #include "CHandle.h"
 #include "C_CSPlayerPawn.h"
 #include "CWeaponCSBaseVData.h"
+#include "CBodyComponentSkeletonInstance.h"
 
 
 class C_CSPlayerPawn; // forwarddecl
@@ -26,11 +27,14 @@ public:
 	NETVAR(float, m_flFallbackWear, "client.dll!C_EconEntity->m_flFallbackWear");
 	NETVAR(int32_t, m_nFallbackStatTrak, "client.dll!C_EconEntity->m_nFallbackStatTrak");
 
+	// skin changer stuff
 	NETVAR_WITH_OFFSET(CWeaponCSBaseVData*, m_pWeaponVData, "client.dll!C_BaseEntity->m_nSubclassID", +8);
 	NETVAR_WITH_OFFSET(CHandle<void*>, m_hStattrakEntity, "client.dll!C_WeaponCSBase->m_iNumEmptyAttacks", +4);
 	NETVAR_WITH_OFFSET(CHandle<void*>, m_hNametagEntity, "client.dll!C_WeaponCSBase->m_iNumEmptyAttacks", +12);
 
-	// skin changer stuff
+	NETVAR(CBodyComponentSkeletonInstance*, m_pGameSceneNode, "client.dll!C_BaseEntity->m_pGameSceneNode");
+
+	// skin changer stuff 2
 	OFFSET_PTR(void, m_pWeaponSecondVTable, offsets::m_pWeaponSecondVTable); // retarded compiler problems with using OFFSET() reference, it dereferences it thinking the vtable itself is the object.....
 	OFFSET(void*, m_ppMaterial, offsets::m_ppMaterial);
 	OFFSET(bool, m_bAllowSkinRegeneration, offsets::m_bAllowSkinRegeneration);

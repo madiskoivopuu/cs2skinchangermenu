@@ -181,13 +181,16 @@
     <ClInclude Include="sdk\econ\CPaintKit.h" />
     <ClInclude Include="sdk\econ\CStickerKit.h" />
     <ClInclude Include="sdk\gameclasses\CAttributeList.h" />
+    <ClInclude Include="sdk\gameclasses\CBodyComponentSkeletonInstance.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayerController.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayer_ViewModelServices.h" />
     <ClInclude Include="sdk\econ\CEconItemAttribute.h" />
     <ClInclude Include="sdk\gameclasses\CEngineClient.h" />
     <ClInclude Include="sdk\gameclasses\CGameEntitySystem.h" />
     <ClInclude Include="sdk\gameclasses\CHandle.h" />
+    <ClInclude Include="sdk\gameclasses\CModelState.h" />
     <ClInclude Include="sdk\gameclasses\CPlayer_WeaponServices.h" />
+    <ClInclude Include="sdk\gameclasses\CSkeletonInstance.h" />
     <ClInclude Include="sdk\gameclasses\CWeaponCSBaseVData.h" />
     <ClInclude Include="sdk\gameclasses\C_AttributeContainer.h" />
     <ClInclude Include="sdk\gameclasses\C_CSGOViewModel.h" />
