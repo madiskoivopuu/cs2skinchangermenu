@@ -140,6 +140,7 @@ void SetStickers(C_WeaponCSBase* weapon, SkinPreference* pref) {
 
 	for (int i = 0; i < pref->stickers.size(); i++) {
 		std::string formatted = std::format("sticker slot {} id", i);
+		std::string formattedWear = std::format("sticker slot {} wear", i);
 
 		Sticker sticker = pref->stickers[i];
 
@@ -165,7 +166,10 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture seed"), static_cast<float>(pref->seed));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref->wearValue);
 
-	// TODO: add stattrak and nametag attachments later
+	// TODO: add if check to see if we need to enable this for legacy paints
+	weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
+	viewModel->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
+
 	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
 	fn::RegenerateWeaponSkin(weapon);
 	//fn::RegenerateAllWeaponSkins(); // updates stickers
@@ -207,9 +211,6 @@ void ApplySkins() {
 
 	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
 	if(weapon != nullptr) {
-		weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
-		viewModel->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
-
 		if (!ShouldUpdateSkin(pawn, weapon))
 			return;
 

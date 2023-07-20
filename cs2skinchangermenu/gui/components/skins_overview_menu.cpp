@@ -313,7 +313,7 @@ void SingleSkinSettingsLeftPanel() {
 
 		// next row, big box with weapon name and important settings
 		//nk_layout_row_dynamic(gui::nuklearCtx, bounds.w, 1);
-		std::string displayName = CreateDisplayName(*windowState.currSkinPref);
+		std::string displayName = CreateWeaponDisplayName(*windowState.currSkinPref);
 
 		nk_style_push_color(gui::nuklearCtx, &gui::nuklearCtx->style.window.fixed_background.data.color, nk_color(48, 48, 48, 255));
 		if (nk_group_begin_titled(gui::nuklearCtx, "skin_main_info", displayName.c_str(), NK_WINDOW_TITLE | NK_WINDOW_NO_SCROLLBAR)) {
@@ -347,6 +347,22 @@ void SingleSkinSettingsLeftPanel() {
 			int bOverridePickedUpSkin = static_cast<int>(!windowState.currSkinPref->overridePickedUpWeaponSkin);
 			if (nk_checkbox_text(gui::nuklearCtx, "Override picked up skins", strlen("Override picked up skins"), &bOverridePickedUpSkin))
 				windowState.currSkinPref->overridePickedUpWeaponSkin = !windowState.currSkinPref->overridePickedUpWeaponSkin;
+
+			std::string weaponTranslatedName = GetWeaponNameFromID(windowState.currSkinPref->weaponID);
+			if (nk_combo_begin_label(gui::nuklearCtx, weaponTranslatedName.c_str(), nk_vec2(nk_widget_width(gui::nuklearCtx), 200))) {
+				for (auto& weaponIter : cache::weaponDefs) {
+					CCStrike15ItemDefinition* weaponDef = weaponIter.m_value;
+					if (!weaponDef || !ShouldIncludeWeaponInCombobox(weaponDef->GetMainCategory()))
+						continue;
+
+					std::string weaponTranslatedName = GetWeaponNameFromID(weaponDef->m_iItemDefinitionIndex);
+					nk_layout_row_dynamic(gui::nuklearCtx, 25, 1);
+					if (nk_combo_item_label(gui::nuklearCtx, weaponTranslatedName.c_str(), NK_TEXT_ALIGN_LEFT))
+						ChangeWeaponForSkinPreference(windowState.currSkinPref, weaponDef->m_iItemDefinitionIndex);
+				}
+
+				nk_combo_end(gui::nuklearCtx);
+			}
 
 			nk_group_end(gui::nuklearCtx);
 		}
@@ -521,7 +537,7 @@ void DrawSkinsOverview() {
         nk_layout_row_dynamic(gui::nuklearCtx, skinPrefBoxSize, SKINS_PER_ROW);
 
 		for (SkinPreference& pref : skins_cache::loadoutAllPresets) {
-			std::string displayName = CreateDisplayName(pref);
+			std::string displayName = CreateWeaponDisplayName(pref);
 			std::string weaponTextureName = GetSkinImageNameForSkinPreference(pref);
 
 			TextureCache& loadedTex = skins_cache::weaponSkins[fnv::Hash(weaponTextureName.c_str())];

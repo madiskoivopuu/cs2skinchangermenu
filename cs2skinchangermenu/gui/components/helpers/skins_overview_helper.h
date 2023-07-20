@@ -1,7 +1,19 @@
 #pragma once
 
+#include <unordered_set>
+
+// Gets the right wear image for the specified wear value
+const char* ImageForFloat(float wear) {
+	if (wear <= 0.15f)
+		return "light";
+	else if (wear <= 0.44f)
+		return "medium";
+	else
+		return "heavy";
+}
+
 // Creates a display name for skin preference.
-std::string CreateDisplayName(SkinPreference pref) {
+std::string CreateWeaponDisplayName(SkinPreference pref) {
 	std::string displayName = "";
 
 	std::optional<CCStrike15ItemDefinition*> itemDef = cache::weaponDefs.FindByKey(pref.weaponID);
@@ -27,19 +39,49 @@ std::string CreateDisplayName(SkinPreference pref) {
 	return displayName;
 }
 
-// Gets the right wear image for the specified wear value
-const char* ImageForFloat(float wear) {
-	if (wear <= 0.15f)
-		return "light";
-	else if (wear <= 0.44f)
-		return "medium";
-	else
-		return "heavy";
-}
-
 char* GetStickerKitTextureName(CStickerKit* stickerKit) {
 	char* actualStickerTextureName = strrchr(stickerKit->stickerKitVpkFile, '/') + 1;
 	return actualStickerTextureName;
+}
+
+bool ShouldIncludeWeaponInCombobox(const char* weaponCategoryName) {
+	static std::unordered_set<uint64_t> bannedWeapons = {
+		fnv::HashConst("weapon_knife"),
+		fnv::HashConst("weapon_knifegg"),
+		fnv::HashConst("weapon_bumpmine"),
+		fnv::HashConst("weapon_snowball"),
+		fnv::HashConst("weapon_smokegrenade"),
+		fnv::HashConst("weapon_hegrenade"),
+		fnv::HashConst("weapon_molotov"),
+		fnv::HashConst("weapon_melee"),
+		fnv::HashConst("weapon_tablet"),
+		fnv::HashConst("weapon_breachcharge"),
+		fnv::HashConst("weapon_fists"),
+		fnv::HashConst("weapon_tagrenade"),
+		fnv::HashConst("weapon_healthshot"),
+		fnv::HashConst("weapon_incgrenade"),
+		fnv::HashConst("weapon_flashbang"),
+		fnv::HashConst("weapon_decoy"),
+		fnv::HashConst("weapon_shield"),
+		fnv::HashConst("weapon_zone_repulsor"),
+		fnv::HashConst("weapon_c4")
+	};
+
+	if(!strstr(weaponCategoryName, "weapon_"))
+		return false;
+
+	if (bannedWeapons.contains(fnv::Hash(weaponCategoryName)))
+		return false;
+
+	return true;
+}
+
+std::string GetWeaponNameFromID(int id) {
+	std::optional<CCStrike15ItemDefinition*> itemDef = cache::weaponDefs.FindByKey(id);
+	if (!itemDef.has_value())
+		return "N/A";
+
+	return cache::englishTranslations[&itemDef.value()->GetHudTranslationTag()[1]];
 }
 
 std::string GetSkinNameForSkinPreference(SkinPreference pref) {

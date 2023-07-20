@@ -17,3 +17,5 @@ namespace skins_cache {
 SkinPreference* CreateAndActivateNewPreference();
 bool LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets);
 bool LoadWeaponTextureThumbnails();
+bool LoadUserSkinPreferences();
+void ChangeWeaponForSkinPreference(SkinPreference* pref, int newWeaponID);

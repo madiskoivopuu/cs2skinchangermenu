@@ -8,7 +8,7 @@ namespace fnv
     constexpr uint64_t prime = 0x00000100000001B3;
 
     // Compiletime hash
-    constexpr uint64_t HashConst(const char* data, const uint64_t value = base) noexcept
+    consteval uint64_t HashConst(const char* data, const uint64_t value = base) noexcept
     {
         return (data[0] == '\0') ? value : HashConst(&data[1], (value ^ uint64_t(data[0])) * prime);
     }

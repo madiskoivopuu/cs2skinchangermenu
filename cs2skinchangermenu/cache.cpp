@@ -66,6 +66,8 @@ bool LoadCache() {
         return false;
     if (!LoadPaintkitsForWeapons(cache::itemSets))
         return false;
+    if (!LoadUserSkinPreferences())
+        return false;
 
     return cache::weaponDefs.m_size && cache::paintKits.m_size && cache::itemSets.m_size && cache::englishTranslations.size();
 }

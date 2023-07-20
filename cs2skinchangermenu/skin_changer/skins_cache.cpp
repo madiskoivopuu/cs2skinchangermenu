@@ -8,35 +8,9 @@ namespace skins_cache {
     // value: texture for that weapon's skin (_heavy at the end is preserved for well worn etc, large_png.vtex_c isn't)
     std::unordered_map<uint64_t, TextureCache> weaponSkins = {};
     vpktool::VPK skinsPakFile;
-    std::vector<SkinPreference> loadoutAllPresets = {
-    SkinPreference{
-        4, // weapon id
+    std::vector<SkinPreference> loadoutAllPresets;
 
-        278,
-        0,
-        0.10f,
-
-        true,
-        11,
-        //"neeger kuubis"
-        "",
-
-        {
-            Sticker{76},
-            Sticker{6627},
-            Sticker{6611},
-            Sticker{76},
-        }
-    }
-    };
-
-    std::unordered_map<uint32_t, SkinPreference*> activeLoadout = {
-        // TODO: remove
-        {
-            4,
-            &loadoutAllPresets[0]
-        },
-    };
+    std::unordered_map<uint32_t, SkinPreference*> activeLoadout = {};
 }
 
 // Map out all released paintkits for each weapon
@@ -134,14 +108,48 @@ bool LoadWeaponTextureThumbnails() {
 
 SkinPreference* CreateAndActivateNewPreference() {
     SkinPreference pref = { };
+    pref.weaponID = 7;
     skins_cache::loadoutAllPresets.push_back(pref);
 
     skins_cache::activeLoadout[pref.weaponID] = &skins_cache::loadoutAllPresets.back();
     return &skins_cache::loadoutAllPresets.back();
 }
 
+void ChangeWeaponForSkinPreference(SkinPreference* pref, int newWeaponID) {
+    skins_cache::activeLoadout.erase(pref->weaponID);
+
+    // reset paintkit
+    pref->paintKitID = -1;
+    pref->weaponID = newWeaponID;
+
+    // enable it for the new weapon
+    skins_cache::activeLoadout[pref->weaponID] = pref;
+}
+
 // Load all user's preset skins from file(server) to memory.
 // TODO: 
 bool LoadUserSkinPreferences() {
+    skins_cache::loadoutAllPresets.reserve(1000);
+    skins_cache::loadoutAllPresets.push_back(
+        SkinPreference{
+        4, // weapon id
+
+        278,
+        0,
+        0.10f,
+
+        true,
+        11,
+        "",
+
+        {
+            Sticker{76},
+            Sticker{6627},
+            Sticker{6611},
+            Sticker{76},
+        }
+        }
+    );
+
     return false;
 }
