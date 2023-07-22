@@ -18,6 +18,7 @@ namespace offsets {
 	extern uint32_t m_pRegenCount; // 0x9e8
 
 	extern uint32_t m_pWeaponSecondVTable; // 0x540
+	extern uint32_t m_iMeshGroupMaskMain; // 0x2e0
 }
 
 bool InitializeOffsets();

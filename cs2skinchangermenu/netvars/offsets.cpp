@@ -11,6 +11,7 @@ namespace offsets {
 	uint32_t m_bAllowSkinRegeneration = 0;
 	uint32_t m_pRegenCount = 0;
 	uint32_t m_pWeaponSecondVTable = 0;
+	uint32_t m_iMeshGroupMaskMain = 0;
 }
 
 // Get's skin regeneration, weapon material pointer and regen count pointer offset
@@ -36,5 +37,8 @@ bool InitializeOffsets() {
 	GetSkinRegenerationOffset();
 	GetWeapon2ndVtableOffset();
 
-	return offsets::m_bAllowSkinRegeneration && offsets::m_pRegenCount && offsets::m_ppMaterial && offsets::m_pWeaponSecondVTable;
+	// TODO: ALWAYS CHECK MANUAL OFFSETS, add warning
+	offsets::m_iMeshGroupMaskMain = 0x2e0;
+
+	return offsets::m_bAllowSkinRegeneration && offsets::m_pRegenCount && offsets::m_ppMaterial && offsets::m_pWeaponSecondVTable && offsets::m_iMeshGroupMaskMain;
 }

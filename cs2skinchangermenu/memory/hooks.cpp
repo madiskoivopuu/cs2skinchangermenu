@@ -36,8 +36,12 @@ void HookPlayerPawn_CreateMove(C_CSPlayerPawn* pawn, void* pUserCMD, void* pUser
     return;
 }
 
-void HookSetMeshGroupMaskCopy(void* rcx) {
-    ApplySkinsCallback(rcx);
+
+// rcx <- location valve wants to write to
+// rdx <- location valve wants to read the value from
+// r8 (r9) <- jump table loc
+void HookSetMeshGroupMaskCopy(void* rcx, void* rdx, void* r8) {
+    ApplySkinsCallback(rdx);
 }
 
 /////////////////////////

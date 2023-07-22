@@ -118,7 +118,7 @@ bool InitializeFunctions() {
 	InitNextSceneIDOffset();
 	InitSetMeshGroupMask();
 
-	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && /*fn::RegenerateWeaponSkin &&*/ fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName
+	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && fn::RegenerateWeaponSkin && fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName
 		&& fn::UpdateViewmodelAttachments && fn::SpawnAndSetStattrakEnt && fn::CEconItemSchema__GetAttributeDefinitionByName && fn::RegenerateAllWeaponSkins && fn::GetNextSceneEventIDOffset
 		&& fn::CGameSceneNode__SetMeshGroupMask && fn::CPaintKit__IsUsingLegacyModel;
 }

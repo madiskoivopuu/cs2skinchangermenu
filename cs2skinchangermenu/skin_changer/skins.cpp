@@ -44,18 +44,16 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 	if (weapon->m_AttributeManager().m_Item().m_AttributeList().m_Attributes().Count() == 0)
 		return true;
 
-	// IMPORTANT: mesh group check
+	// IMPORTANT: mesh group check only if we have the paint kit definition
 	SkinPreference skinPref = *skins_cache::activeLoadout.at(itemDefIndex);
 	std::optional<CPaintKit*> paintKitDef = cache::paintKits.FindByKey(skinPref.paintKitID);
-	if (!paintKitDef.has_value())
-		return false;
-
-	if (weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() == 1 &&
-		fn::CPaintKit__IsUsingLegacyModel(paintKitDef.value()->paintKitName)) {
-		// update mesh group for viewmodel and weapon and then force update
-
+	if (paintKitDef.has_value() 
+		&& fn::CPaintKit__IsUsingLegacyModel(paintKitDef.value()->paintKitName) && viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain() == 1) {
+		// update mesh group for viewmodel and weapon
 		fn::CGameSceneNode__SetMeshGroupMask(viewModel->m_pGameSceneNode(), 2);
 		fn::CGameSceneNode__SetMeshGroupMask(weapon->m_pGameSceneNode(), 2);
+		// force update
+		return true;
 	}
 
 	// check if weapon already has the same skin or float
@@ -72,7 +70,7 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 		if (attr.m_iAttributeDefinitionIndex() == 8 && attr.m_flValue() != skinPref.wearValue)
 			return true;
 		// kill eater aka stattrak counter
-		if (attr.m_iAttributeDefinitionIndex() == 80 && attr.m_flValue() != static_cast<float>(skinPref.stattrakKills))
+		if (skinPref.useStattrak && attr.m_iAttributeDefinitionIndex() == 80 && attr.m_flValue() != static_cast<float>(skinPref.stattrakKills))
 			return true;
 	}
 
@@ -181,12 +179,12 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 
 	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
 	fn::RegenerateWeaponSkin(weapon);
-	//fn::RegenerateAllWeaponSkins(); // updates stickers
+	fn::RegenerateAllWeaponSkins(); // updates stickers
 	fn::UpdateViewmodelAttachments(viewModel, weapon);
 }
 
 // called for every frame
-void ApplySkinsCallback(void* rcx) {
+void ApplySkinsCallback(void* rdx) {
 	CCSPlayerController* localPlayer = *globals::ppLocalPlayer;
 	if (!localPlayer)
 		return;
@@ -206,9 +204,8 @@ void ApplySkinsCallback(void* rcx) {
 	if (!viewModel)
 		return;
 
-	CBodyComponentSkeletonInstance* inst = viewModel->m_pGameSceneNode();
-	ptrdiff_t diff = static_cast<char*>(rcx) - reinterpret_cast<char*>(inst);
-	if (diff < 0x2a0 || diff > 0x320) // only do the update at a very specific time
+	void* offsetToMask = &viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain();
+	if (offsetToMask != rdx) // only do the update at a very specific time, when we are writing the result from our current viewmodel to some random place
 		return;
 
 	/*pawn->m_nNextSceneEventId() += 15;
