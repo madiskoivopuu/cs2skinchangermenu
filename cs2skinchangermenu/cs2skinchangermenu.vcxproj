@@ -181,6 +181,7 @@
     <ClInclude Include="sdk\econ\CPaintKit.h" />
     <ClInclude Include="sdk\econ\CStickerKit.h" />
     <ClInclude Include="sdk\gameclasses\CAttributeList.h" />
+    <ClInclude Include="sdk\gameclasses\CBodyComponent.h" />
     <ClInclude Include="sdk\gameclasses\CBodyComponentSkeletonInstance.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayerController.h" />
     <ClInclude Include="sdk\gameclasses\CCSPlayer_ViewModelServices.h" />

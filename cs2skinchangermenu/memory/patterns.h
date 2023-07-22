@@ -33,6 +33,19 @@ constexpr auto MASK_LOCALPLAYER_PTRPTR1 = "xxxxxx????xxxx";
 constexpr auto OFFSETSTART_LOCALPLAYER_PTRPTR1 = 6;
 constexpr auto OFFSETEND_LOCALPLAYER_PTRPTR1 = 3 + 7;
 
+// CGameSceneNode::SetMeshGroupMask(CGameSceneNode*, uint64_t)
+// found by string: CBaseModelEntity::SetBodygroup
+// found by string: CBaseModelEntity has no model!
+// strings xref to a different function, the one above these strings (closest) is setmeshgroupmask
+constexpr auto PATTERN_SETMESHGROUPMASK_PTR = "\x48\x89\x5c\x24\x00\x48\x89\x74\x24\x00\x57\x48\x83\xec\x00\x48\x8d\x99\x00\x00\x00\x00\x48\x8b\x71";
+constexpr auto MASK_SETMESHGROUPMASK_PTR = "xxxx?xxxx?xxxx?xxx????xxx";
+
+// CPaintKit::IsUsingLegacyModel()
+// found by string: cu_ak47_cobra
+// found by string: any old skin name from items_game
+constexpr auto PATTERN_ISUSINGLEGACYMODEL_PTR = "\x48\x8B\xC4\x48\x89\x70\x20\x55\x48\x8D\x68\xA1";
+constexpr auto MASK_ISUSINGLEGACYMODEL_PTR = "xxxxxxxxxxxx";
+
 // GetNextSceneEventIDOffset() relative call
 // found by string: default_glove_arm_model
 // found by xref: xref the function, it will be together with nametag and stattrak attachment update funcs 
@@ -41,6 +54,15 @@ constexpr auto MASK_GETNEXTSCENEEVENTOFFSET_PTR_OFFSET = "x????xxxxxx";
 constexpr auto OFFSETSTART_GETNEXTSCENEEVENTOFFSET = 1;
 constexpr auto OFFSETEND_GETNEXTSCENEEVENTOFFSET = 5;
 
+// HOOKED
+// random function which sets some m_MeshGroupMask copy
+// found by string and search for func: Path_SetCount failed, depth already ==
+// found by string and search for func: Path_AddToTail failed, depth already == 
+// the actual function should be one of the last ones, it has a big switch(case) body, should be after a label
+constexpr auto PATTERN_MESHGROUPMASKCOPIER_PTR = "\x48\x8b\xc1\x4c\x8d\x15";
+constexpr auto MASK_MESHGROUPMASKCOPIER_PTR = "xxxxxx";
+
+// HOOKED
 // C_CSPlayerPawn::CreateMove(CUserCmd*, CUserCmd*) (potentially)
 // found by: looking inside CClientInput virtual function, where there's a string "cl: %d -------------------"
 // player pawn call is above a lot of if checks with |= assignments

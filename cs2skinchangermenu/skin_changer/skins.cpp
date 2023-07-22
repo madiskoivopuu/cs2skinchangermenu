@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "skins.h"
 #include "skins_cache.h"
+#include "cache.h"
 
 #include "sdk/CUtl/CUtlMap.h"
 #include "sdk/econ/CEconItemSetDefinition.h"
@@ -13,16 +14,16 @@
 #include <string>
 #include <iostream>
 #include <format>
+#include <atomic>
 
 namespace skins {
-	const int ID_GLOVE_PREFERENCE = 9005;
-	const int ID_KNIFE_PREFERENCE = 9006;
-	bool regenViewmodel = false;
+	std::atomic_bool updateMeshGroupMask;
+	void* prevWeapon;
 }
 
 // Check whether to update a certain weapon's skin based on the users' settings
 // Returns false at the end of the function if any rigorous checks didn't go through
-bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
+bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	int itemDefIndex = weapon->m_AttributeManager().m_Item().m_iItemDefinitionIndex();
 	if (skins_cache::activeLoadout.find(itemDefIndex) == skins_cache::activeLoadout.end()) // skin preference not set
 		return false;
@@ -43,9 +44,21 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_WeaponCSBase* weapon) {
 	if (weapon->m_AttributeManager().m_Item().m_AttributeList().m_Attributes().Count() == 0)
 		return true;
 
-	// check if weapon already has the same skin or float
+	// IMPORTANT: mesh group check
 	SkinPreference skinPref = *skins_cache::activeLoadout.at(itemDefIndex);
+	std::optional<CPaintKit*> paintKitDef = cache::paintKits.FindByKey(skinPref.paintKitID);
+	if (!paintKitDef.has_value())
+		return false;
 
+	if (weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() == 1 &&
+		fn::CPaintKit__IsUsingLegacyModel(paintKitDef.value()->paintKitName)) {
+		// update mesh group for viewmodel and weapon and then force update
+
+		fn::CGameSceneNode__SetMeshGroupMask(viewModel->m_pGameSceneNode(), 2);
+		fn::CGameSceneNode__SetMeshGroupMask(weapon->m_pGameSceneNode(), 2);
+	}
+
+	// check if weapon already has the same skin or float
 	CAttributeList& attrs = weapon->m_AttributeManager().m_Item().m_AttributeList();
 	for (int i = 0; i < attrs.m_Attributes().Count(); i++) {
 		CEconItemAttribute attr = attrs.m_Attributes().Element(i);
@@ -166,18 +179,14 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture seed"), static_cast<float>(pref->seed));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref->wearValue);
 
-	// TODO: add if check to see if we need to enable this for legacy paints
-	weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
-	viewModel->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = 2;
-
 	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
 	fn::RegenerateWeaponSkin(weapon);
 	//fn::RegenerateAllWeaponSkins(); // updates stickers
 	fn::UpdateViewmodelAttachments(viewModel, weapon);
 }
 
-// actual skin changer logic
-void ApplySkins() {
+// called for every frame
+void ApplySkinsCallback(void* rcx) {
 	CCSPlayerController* localPlayer = *globals::ppLocalPlayer;
 	if (!localPlayer)
 		return;
@@ -186,9 +195,9 @@ void ApplySkins() {
 		return;
 
 	C_CSPlayerPawn* pawn = localPlayer->m_hPlayerPawn().GetEnt();
-	if (!pawn) 
+	if (!pawn)
 		return;
-	
+
 	CPlayer_WeaponServices* wepServices = pawn->m_pWeaponServices();
 	if (!wepServices)
 		return;
@@ -196,8 +205,13 @@ void ApplySkins() {
 	C_CSGOViewModel* viewModel = pawn->m_pViewModelServices()->m_hViewModel().GetEnt();
 	if (!viewModel)
 		return;
-	
-	pawn->m_nNextSceneEventId() += 15;
+
+	CBodyComponentSkeletonInstance* inst = viewModel->m_pGameSceneNode();
+	ptrdiff_t diff = static_cast<char*>(rcx) - reinterpret_cast<char*>(inst);
+	if (diff < 0x2a0 || diff > 0x320) // only do the update at a very specific time
+		return;
+
+	/*pawn->m_nNextSceneEventId() += 15;
 	pawn->m_EconGloves().m_iItemDefinitionIndex() = 5033;
 	pawn->m_EconGloves().m_iItemID() = -1;
 	pawn->m_EconGloves().m_iItemIDLow() = -1;
@@ -207,21 +221,15 @@ void ApplySkins() {
 	pawn->m_EconGloves().SetAttributeValueByName("set item texture wear", 0.8f);
 
 	pawn->m_EconGloves().m_bInitialized() = true;
-	pawn->m_bNeedToReApplyGloves() = true;
+	pawn->m_bNeedToReApplyGloves() = true;*/
 
 	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
-	if(weapon != nullptr) {
-		if (!ShouldUpdateSkin(pawn, weapon))
+	if (weapon != nullptr) {
+		if (!ShouldUpdateSkin(pawn, viewModel, weapon))
 			return;
 
-		//std::cout << weapon->m_pGameSceneNode() << std::endl;
-		//std::cout << &weapon->m_pCBodyComponent()->m_skeletonInstance().m_modelState().m_MeshGroupMask() << std::endl;
 		SetAndUpdateSkin(viewModel, weapon);
 	}
-}
 
-// called for every CreateMove
-void ApplySkinsCallback() {
-	// initialization code possibly
-	ApplySkins();
+	skins::prevWeapon = weapon;
 }

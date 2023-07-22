@@ -130,40 +130,41 @@ unsigned char hde64_table[] = {
 
 #pragma pack(push,1)
 
+// http://svn.saurik.com/repos/menes/branches/mobilesubstrate-3.1/hde64c/doc/en/manual.txt
 typedef struct {
-    uint8_t len;
-    uint8_t p_rep;
-    uint8_t p_lock;
-    uint8_t p_seg;
-    uint8_t p_66;
-    uint8_t p_67;
-    uint8_t rex;
-    uint8_t rex_w;
-    uint8_t rex_r;
-    uint8_t rex_x;
-    uint8_t rex_b;
-    uint8_t opcode;
-    uint8_t opcode2;
-    uint8_t modrm;
-    uint8_t modrm_mod;
-    uint8_t modrm_reg;
-    uint8_t modrm_rm;
-    uint8_t sib;
-    uint8_t sib_scale;
-    uint8_t sib_index;
-    uint8_t sib_base;
+    uint8_t len;         // length of command
+    uint8_t p_rep;       // rep/repz (0xf3) & repnz (0xf2) prefix
+    uint8_t p_lock;      // lock prefix: 0xf0
+    uint8_t p_seg;       // segment prefix: 0x26,0x2e,0x36,0x3e,0x64,0x65
+    uint8_t p_66;        // operand-size override prefix: 0x66
+    uint8_t p_67;        // address-size override prefix: 0x67
+    uint8_t rex;         // REX prefix
+    uint8_t rex_w;       //   REX.W
+    uint8_t rex_r;       //   REX.R
+    uint8_t rex_x;       //   REX.X
+    uint8_t rex_b;       //   REX.B
+    uint8_t opcode;      // opcode
+    uint8_t opcode2;     // second opcode (if first opcode is 0x0f)
+    uint8_t modrm;       // ModR/M byte
+    uint8_t modrm_mod;   //   ModR/M.mod
+    uint8_t modrm_reg;   //   ModR/M.reg
+    uint8_t modrm_rm;    //   ModR/M.r/m
+    uint8_t sib;         // SIB byte
+    uint8_t sib_scale;   //   SIB.scale
+    uint8_t sib_index;   //   SIB.index
+    uint8_t sib_base;    //   SIB.base
     union {
-        uint8_t imm8;
-        uint16_t imm16;
-        uint32_t imm32;
-        uint64_t imm64;
+        uint8_t imm8;    // immediate value imm8
+        uint16_t imm16;  // immediate value imm16
+        uint32_t imm32;  // immediate value imm32
+        uint64_t imm64;  // immediate value imm64
     } imm;
     union {
-        uint8_t disp8;
-        uint16_t disp16;
-        uint32_t disp32;
+        uint8_t disp8;   // displacement disp8
+        uint16_t disp16; // displacement disp16
+        uint32_t disp32; // displacement disp32
     } disp;
-    uint32_t flags;
+    uint32_t flags;      // flags
 } hde64s;
 
 #pragma pack(pop)

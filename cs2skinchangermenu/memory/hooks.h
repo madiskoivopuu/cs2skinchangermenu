@@ -9,6 +9,7 @@ namespace hooks {
 	extern std::unique_ptr<Hook> swapChainPresentHook;
 
 	extern std::unique_ptr<Hook> playerPawnCreateMoveHook;
+	extern std::unique_ptr<Hook> meshGroupCopyHook;
 }
 
 constexpr void* VirtualFunction(void* thisptr, size_t index) noexcept

@@ -12,6 +12,7 @@
 
 #include "sdk/econ/CCStrike15ItemDefinition.h"
 #include "memory/tools/patternscan.h"
+#include "skin_changer/skins.h"
 
 #include "cache.h"
 
@@ -50,12 +51,11 @@ DWORD WINAPI Main(HMODULE hModule) {
 
     hooks::swapChainPresentHook->Enable();
     hooks::playerPawnCreateMoveHook->Enable();
-    //hooks::engineFrameBoundary->Enable();
+    hooks::meshGroupCopyHook->Enable();
 
     //kv.data.keys["lang"].keys["tokens"];
 
     while (true) {
-        //ApplySkinsCallback();
         Sleep(1);
 
         if (GetAsyncKeyState(VK_END) & 1)

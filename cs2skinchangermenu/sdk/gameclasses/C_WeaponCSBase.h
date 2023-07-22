@@ -7,6 +7,7 @@
 #include "C_CSPlayerPawn.h"
 #include "CWeaponCSBaseVData.h"
 #include "CBodyComponentSkeletonInstance.h"
+#include "CBodyComponent.h"
 
 
 class C_CSPlayerPawn; // forwarddecl
@@ -33,6 +34,7 @@ public:
 	NETVAR_WITH_OFFSET(CHandle<void*>, m_hNametagEntity, "client.dll!C_WeaponCSBase->m_iNumEmptyAttacks", +12);
 
 	NETVAR(CBodyComponentSkeletonInstance*, m_pGameSceneNode, "client.dll!C_BaseEntity->m_pGameSceneNode");
+	NETVAR(CBodyComponent*, m_CBodyComponent, "client.dll!C_BaseEntity->m_CBodyComponent");
 
 	// skin changer stuff 2
 	OFFSET_PTR(void, m_pWeaponSecondVTable, offsets::m_pWeaponSecondVTable); // retarded compiler problems with using OFFSET() reference, it dereferences it thinking the vtable itself is the object.....

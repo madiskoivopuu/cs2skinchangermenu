@@ -16,6 +16,7 @@ namespace hooks {
 	std::unique_ptr<Hook> swapChainPresentHook;
 
     std::unique_ptr<Hook> playerPawnCreateMoveHook;
+    std::unique_ptr<Hook> meshGroupCopyHook;
 }
 
 
@@ -32,7 +33,11 @@ void HookPresent(IDXGISwapChain* chain, UINT SyncInterval, UINT Flags) {
 }
 
 void HookPlayerPawn_CreateMove(C_CSPlayerPawn* pawn, void* pUserCMD, void* pUserCMDCopy) {
-    ApplySkinsCallback();
+    return;
+}
+
+void HookSetMeshGroupMaskCopy(void* rcx) {
+    ApplySkinsCallback(rcx);
 }
 
 /////////////////////////
@@ -54,10 +59,18 @@ bool InitializeHooks() {
             reinterpret_cast<BYTE*>(&HookPlayerPawn_CreateMove)
         );
 
-    return hooks::swapChainPresentHook.get() && hooks::playerPawnCreateMoveHook.get();
+    funcptr = ScanPatternInModule("client.dll", PATTERN_MESHGROUPMASKCOPIER_PTR, MASK_MESHGROUPMASKCOPIER_PTR);
+    if (funcptr)
+        hooks::meshGroupCopyHook = CreateTrampHook64_Advanced(
+            reinterpret_cast<BYTE*>(funcptr),
+            reinterpret_cast<BYTE*>(&HookSetMeshGroupMaskCopy)
+        );
+
+    return hooks::swapChainPresentHook.get() && hooks::playerPawnCreateMoveHook.get() && hooks::meshGroupCopyHook.get();
 }
 
 void RemoveHooks() {
     hooks::swapChainPresentHook->Delete();
     hooks::playerPawnCreateMoveHook->Delete();
+    hooks::meshGroupCopyHook->Delete();
 }

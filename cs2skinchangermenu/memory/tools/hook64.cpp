@@ -209,17 +209,21 @@ void FormatHookPageLeave(BYTE* opcodeStorage, uint64_t offset) {
 }
 
 // Checks whether an instruction inside our desired hook area is a relative JMP or CALL. If so, returns true, since we would have to recalculate those CALL and JMP destinations.
-bool DoesInstructionNeedRecalculating(BYTE* instructionPtr) {
+bool DoesInstructionNeedRecalculating(hde64s* hdeState) {
 	// excludes relative JMP and CALL
-	if (0xE8 <= *instructionPtr && *instructionPtr <= 0xEB)
+	if (0xE8 <= hdeState->opcode && hdeState->opcode <= 0xEB && hdeState->imm.imm32 != 0)
+		return true;
+
+	// excludes LEA where the operand is a 32 bit relative offset, lower offsets check disabled due to disassembler limitations
+	if (hdeState->opcode == 0x8D && (hdeState->flags & F_DISP32))
 		return true;
 
 	// relative JO, JNE etc.. instructions
-	if (0x70 <= *instructionPtr && *instructionPtr <= 0x7F)
+	if (0x70 <= hdeState->opcode && hdeState->opcode <= 0x7F && hdeState->imm.imm32 != 0)
 		return true;
 
 	// another type of relative JNE, JGE etc...
-	if (*instructionPtr == 0x0F && 0x80 <= *(instructionPtr + 1) && *(instructionPtr + 1) <= 0x8F)
+	if (hdeState->opcode == 0x0F && 0x80 <= hdeState->opcode2 && hdeState->opcode2 <= 0x8F && hdeState->imm.imm32 != 0)
 		return true;
 
 	return false;
@@ -263,18 +267,15 @@ BYTE* FindGoodHookPlacementLoc(BYTE* targetFunc) {
 	// find an offset that is suitable to avoid corrupting asm instructions
 	while (static_cast<uint64_t>(end-start) < sizeof(absJmpNoRegister)) {
 		hde64s hdeState = { 0 };
-		if (DoesInstructionNeedRecalculating(end)) {
-			int size = hde64_disasm(start, &hdeState);
-			end += size;
+		int size = hde64_disasm(end, &hdeState);
+		if (hdeState.flags & F_ERROR)
+			return nullptr;
+
+		end += size;
+		if (DoesInstructionNeedRecalculating(&hdeState)) {
 			start = end;
 			continue;
 		}
-
-		int size = hde64_disasm(start, &hdeState);
-		end += size;
-
-		if (hdeState.flags & F_ERROR)
-			return nullptr;
 	}
 
 	return start;

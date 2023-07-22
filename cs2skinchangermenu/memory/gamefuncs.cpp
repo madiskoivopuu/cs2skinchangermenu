@@ -15,6 +15,8 @@ namespace fn {
 	fCEconItemSchema__GetAttributeDefinitionByName CEconItemSchema__GetAttributeDefinitionByName = nullptr;
 	fRegenerateAllWeaponSkins RegenerateAllWeaponSkins = nullptr;
 	fGetNextSceneEventIDOffset GetNextSceneEventIDOffset = nullptr;
+	fCGameSceneNode__SetMeshGroupMask CGameSceneNode__SetMeshGroupMask = nullptr;
+	fCPaintKit__IsUsingLegacyModel CPaintKit__IsUsingLegacyModel = nullptr;
 }
 
 void InitNextSceneIDOffset() {
@@ -37,13 +39,12 @@ void InitGetCSWeaponDataFromItem() {
 	fn::GetCSWeaponDataFromItem = static_cast<fGetCSWeaponDataFromItem>(funcptr);
 }
 
-// initiate allowskinregen and regenweaponskin functions
+// initiate allowskinregen and regenweaponskin functions, legacy model check func
 void InitSkinFunctions() {
 	// set up regenerate all weapon skins func
 	void* funcptr = ScanPatternInModule("client.dll", PATTERN_REGENALLWEAPONSKINS_PTR, MASK_REGENALLWEAPONSKINS_PTR);
 	if (!funcptr)
 		return;
-
 	fn::RegenerateAllWeaponSkins = (fRegenerateAllWeaponSkins)funcptr;
 
 	uint8_t* relCallPtr = reinterpret_cast<uint8_t*>(ScanPatternInModule("client.dll", PATTERN_REGENWEAPONSKIN_PTR, MASK_REGENWEAPONSKIN_PTR));
@@ -57,6 +58,13 @@ void InitSkinFunctions() {
 	// set up regenweaponskin func
 	int32_t offsetFromInstructionSigned = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_REGENWEAPONSKIN);
 	fn::RegenerateWeaponSkin = reinterpret_cast<fRegenerateWeaponSkin>(relCallPtr + OFFSETEND_REGENWEAPONSKIN + offsetFromInstructionSigned);
+
+	// set up is using legacy model stuff
+	void* funcptr2 = ScanPatternInModule("client.dll", PATTERN_ISUSINGLEGACYMODEL_PTR, MASK_ISUSINGLEGACYMODEL_PTR);
+	if (!funcptr2)
+		return;
+
+	fn::CPaintKit__IsUsingLegacyModel = reinterpret_cast<fCPaintKit__IsUsingLegacyModel>(funcptr2);
 }
 
 void InitAttribFunctions() {
@@ -93,6 +101,14 @@ void InitSkinAttachmentFunctions() {
 	fn::UpdateViewmodelAttachments = static_cast<fUpdateViewmodelAttachments>(funcptr);
 }
 
+void InitSetMeshGroupMask() {
+	void* funcptr = ScanPatternInModule("client.dll", PATTERN_SETMESHGROUPMASK_PTR, MASK_SETMESHGROUPMASK_PTR);
+	if (!funcptr)
+		return;
+
+	fn::CGameSceneNode__SetMeshGroupMask = reinterpret_cast<fCGameSceneNode__SetMeshGroupMask>(funcptr);
+}
+
 bool InitializeFunctions() {
 	InitGetCEconItemSystem();
 	InitAttribFunctions();
@@ -100,7 +116,9 @@ bool InitializeFunctions() {
 	InitSkinFunctions();
 	InitSkinAttachmentFunctions();
 	InitNextSceneIDOffset();
+	InitSetMeshGroupMask();
 
-	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && fn::RegenerateWeaponSkin && fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName
-		&& fn::UpdateViewmodelAttachments && fn::SpawnAndSetStattrakEnt && fn::CEconItemSchema__GetAttributeDefinitionByName && fn::RegenerateAllWeaponSkins && fn::GetNextSceneEventIDOffset;
+	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && /*fn::RegenerateWeaponSkin &&*/ fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName
+		&& fn::UpdateViewmodelAttachments && fn::SpawnAndSetStattrakEnt && fn::CEconItemSchema__GetAttributeDefinitionByName && fn::RegenerateAllWeaponSkins && fn::GetNextSceneEventIDOffset
+		&& fn::CGameSceneNode__SetMeshGroupMask && fn::CPaintKit__IsUsingLegacyModel;
 }

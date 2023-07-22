@@ -18,6 +18,8 @@ using fUpdateViewmodelAttachments = void (__fastcall*)(void*, C_WeaponCSBase*); 
 using fSpawnAndSetNametagEnt = void (__fastcall*)(void*); // 1st argument is m_hNametagAttachment*
 using fCEconItemSchema__GetAttributeDefinitionByName = CEconItemAttributeDefinition* (__fastcall*)(void*, char*);
 using fGetNextSceneEventIDOffset = int64_t (__fastcall*)(void*, void*, int, bool);
+using fCGameSceneNode__SetMeshGroupMask = void (__fastcall*)(void*, uint64_t);
+using fCPaintKit__IsUsingLegacyModel = bool (__fastcall*)(const char*);
 
 namespace fn {
 	extern fGetCCStrike15ItemSystem CSource2Client__GetCCStrike15ItemSystem;
@@ -31,6 +33,8 @@ namespace fn {
 	extern fCEconItemSchema__GetAttributeDefinitionByName CEconItemSchema__GetAttributeDefinitionByName;
 	extern fRegenerateAllWeaponSkins RegenerateAllWeaponSkins;
 	extern fGetNextSceneEventIDOffset GetNextSceneEventIDOffset;
+	extern fCGameSceneNode__SetMeshGroupMask CGameSceneNode__SetMeshGroupMask;
+	extern fCPaintKit__IsUsingLegacyModel CPaintKit__IsUsingLegacyModel;
 }
 
 bool InitializeFunctions();

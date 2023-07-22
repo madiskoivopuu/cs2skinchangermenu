@@ -28,19 +28,16 @@ std::unordered_map<std::string, std::string> ReadEnglishTranslation() {
     );
 
     std::ifstream file(englishTranslationFileLoc);
-    file.seekg(3);
-    char c = file.get();
-    if (c != '\"')
-        throw std::runtime_error("problem with translation file");
-
     // read file to string
-    file.seekg(3, std::ios::end);
+    file.seekg(0, std::ios::end);
     size_t size = file.tellg();
     std::string buffer(size, ' ');
-    file.seekg(3);
+    file.seekg(0);
     file.read(&buffer[0], size);
 
-    tyti::vdf::object kv = tyti::vdf::read(std::cbegin(buffer), std::cend(buffer));
+    size_t pos = buffer.find("\"");
+
+    tyti::vdf::object kv = tyti::vdf::read(buffer.cbegin()+pos, buffer.cend());
 
     if (kv.childs.size() == 0)
         return {};
