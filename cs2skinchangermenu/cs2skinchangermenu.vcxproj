@@ -123,7 +123,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);$(DXSDK_DIR)\Lib\x64\dxguid.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);$(DXSDK_DIR)\Lib\x64\dxguid.lib;Shlwapi.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,14 +145,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);$(DXSDK_DIR)\Lib\x64\dxguid.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);$(DXSDK_DIR)\Lib\x64\dxguid.lib;Shlwapi.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cache.h" />
     <ClInclude Include="globals.h" />
+    <ClInclude Include="gui\components\skin_changer_menu\functions.h" />
+    <ClInclude Include="skin_changer\gloves.h" />
     <ClInclude Include="gui\components\components.h" />
-    <ClInclude Include="gui\components\helpers\skins_overview_helper.h" />
+    <ClInclude Include="gui\components\skin_changer_menu\helpers\skins_helper_funcs.h" />
     <ClInclude Include="gui\gui_setup.h" />
     <ClInclude Include="gui\gui_main.h" />
     <ClInclude Include="memory\hooks.h" />
@@ -220,8 +222,14 @@
   <ItemGroup>
     <ClCompile Include="cache.cpp" />
     <ClCompile Include="globals.cpp" />
+    <ClCompile Include="gui\components\skin_changer_menu\helpers\skins_helper_funcs.cpp" />
+    <ClCompile Include="gui\components\skin_changer_menu\saved_skins_list.cpp" />
+    <ClCompile Include="gui\components\skin_changer_menu\single_skin_settings.cpp" />
+    <ClCompile Include="gui\components\skin_changer_menu\skins_search.cpp" />
+    <ClCompile Include="gui\components\skin_changer_menu\sticker_search.cpp" />
+    <ClCompile Include="skin_changer\gloves.cpp" />
     <ClCompile Include="gui\components\sidebar.cpp" />
-    <ClCompile Include="gui\components\skins_overview_menu.cpp" />
+    <ClCompile Include="gui\components\skin_changer_menu\!skin_changer_menu.cpp" />
     <ClCompile Include="gui\gui_setup.cpp" />
     <ClCompile Include="gui\gui_main.cpp" />
     <ClCompile Include="memory\hooks.cpp" />

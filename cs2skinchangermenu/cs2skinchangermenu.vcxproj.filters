@@ -198,7 +198,7 @@
     <ClInclude Include="cache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gui\components\helpers\skins_overview_helper.h">
+    <ClInclude Include="gui\components\skin_changer_menu\helpers\skins_helper_funcs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk\econ\CStickerKit.h">
@@ -214,6 +214,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk\gameclasses\CBodyComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skin_changer\gloves.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\components\skin_changer_menu\functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -290,13 +296,31 @@
     <ClCompile Include="sdk\gameclasses\CAttributeList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gui\components\skins_overview_menu.cpp">
+    <ClCompile Include="gui\components\skin_changer_menu\!skin_changer_menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="skin_changer\TextureCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="skin_changer\gloves.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\components\skin_changer_menu\single_skin_settings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\components\skin_changer_menu\sticker_search.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\components\skin_changer_menu\saved_skins_list.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\components\skin_changer_menu\skins_search.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\components\skin_changer_menu\helpers\skins_helper_funcs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

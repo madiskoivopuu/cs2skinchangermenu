@@ -1,8 +1,13 @@
-#pragma once
+#include "pch.h"
+#include "skins_helper_funcs.h"
 
 #include <unordered_set>
+#include "skin_changer/SkinPreference.h"
+#include "cache.h"
+#include "netvars/fnvhash.h"
+#include "sdk/econ/CStickerKit.h"
 
-// Gets the right wear image for the specified wear value
+
 const char* ImageForFloat(float wear) {
 	if (wear <= 0.15f)
 		return "light";
@@ -44,7 +49,15 @@ char* GetStickerKitTextureName(CStickerKit* stickerKit) {
 	return actualStickerTextureName;
 }
 
-bool ShouldIncludeWeaponInCombobox(const char* weaponCategoryName) {
+bool ShouldIncludeWeaponForSkin_ID(int itemDefIndex) {
+	std::optional<CCStrike15ItemDefinition*> itemDefOpt = cache::weaponDefs.FindByKey(itemDefIndex);
+	if (!itemDefOpt.has_value())
+		return false;
+
+	return ShouldIncludeWeaponForSkin(itemDefOpt.value()->GetMainCategory(), itemDefOpt.value()->GetSubcategory());
+}
+
+bool ShouldIncludeWeaponForSkin(const char* weaponCategoryName, const char* weaponSubcategoryName) {
 	static std::unordered_set<uint64_t> bannedWeapons = {
 		fnv::HashConst("weapon_knife"),
 		fnv::HashConst("weapon_knifegg"),
@@ -67,7 +80,10 @@ bool ShouldIncludeWeaponInCombobox(const char* weaponCategoryName) {
 		fnv::HashConst("weapon_c4")
 	};
 
-	if(!strstr(weaponCategoryName, "weapon_"))
+	if (!strstr(weaponCategoryName, "weapon_") && !strstr(weaponSubcategoryName, "gloves"))
+		return false;
+
+	if (!strcmp(weaponSubcategoryName, "ct_gloves") || !strcmp(weaponSubcategoryName, "t_gloves"))
 		return false;
 
 	if (bannedWeapons.contains(fnv::Hash(weaponCategoryName)))
@@ -76,7 +92,7 @@ bool ShouldIncludeWeaponInCombobox(const char* weaponCategoryName) {
 	return true;
 }
 
-std::string GetWeaponNameFromID(int id) {
+std::string GetTranslatedItemNameFromID(int id) {
 	std::optional<CCStrike15ItemDefinition*> itemDef = cache::weaponDefs.FindByKey(id);
 	if (!itemDef.has_value())
 		return "N/A";

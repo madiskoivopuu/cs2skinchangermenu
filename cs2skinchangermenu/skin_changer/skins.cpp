@@ -7,19 +7,17 @@
 #include "sdk/econ/CEconItemSetDefinition.h"
 #include "sdk/gameclasses/CCSPlayerController.h"
 
+#include "skin_changer/SkinPreference.h"
+#include "skin_changer/TextureCache.h"
 #include "vpktool/VPK.h"
 #include "globals.h"
 #include "memory/gamefuncs.h"
+#include "gloves.h"
 
 #include <string>
 #include <iostream>
 #include <format>
 #include <atomic>
-
-namespace skins {
-	std::atomic_bool updateMeshGroupMask;
-	void* prevWeapon;
-}
 
 // Check whether to update a certain weapon's skin based on the users' settings
 // Returns false at the end of the function if any rigorous checks didn't go through
@@ -108,14 +106,6 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 	return false;
 }
 
-void ForceStattrakUpdate(C_CSGOViewModel* viewModel) {
-	int magicNr = 3369543006;
-	int64_t offset = fn::GetNextSceneEventIDOffset(&viewModel->m_nNextSceneEventId(), &magicNr, magicNr, false);
-
-	uint8_t* dataLoc = *reinterpret_cast<uint8_t**>(&viewModel->m_nNextSceneEventId()) + offset * 0x10;
-	*reinterpret_cast<int*>(dataLoc + 0xc) += 1;
-}
-
 // Sets the stattrak on our weapon depending whether it is enabled or not
 void SetStattrak(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, SkinPreference* pref) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
@@ -183,6 +173,20 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
 	fn::UpdateViewmodelAttachments(viewModel, weapon);
 }
 
+void ApplySkins(C_CSPlayerPawn* pawn, CPlayer_WeaponServices* wepServices, C_CSGOViewModel* viewModel, void* rdx) {
+	void* offsetToMask = &viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain();
+	if (offsetToMask != rdx) // only do the update at a very specific time, when we are writing the result from our current viewmodel to some random place
+		return;
+
+	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
+	if (weapon != nullptr) {
+		if (!ShouldUpdateSkin(pawn, viewModel, weapon))
+			return;
+
+		SetAndUpdateSkin(viewModel, weapon);
+	}
+}
+
 // called for every frame
 void ApplySkinsCallback(void* rdx) {
 	CCSPlayerController* localPlayer = *globals::ppLocalPlayer;
@@ -204,29 +208,6 @@ void ApplySkinsCallback(void* rdx) {
 	if (!viewModel)
 		return;
 
-	void* offsetToMask = &viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain();
-	if (offsetToMask != rdx) // only do the update at a very specific time, when we are writing the result from our current viewmodel to some random place
-		return;
-
-	/*pawn->m_nNextSceneEventId() += 15;
-	pawn->m_EconGloves().m_iItemDefinitionIndex() = 5033;
-	pawn->m_EconGloves().m_iItemID() = -1;
-	pawn->m_EconGloves().m_iItemIDLow() = -1;
-	pawn->m_EconGloves().m_iItemIDHigh() = -1;
-	pawn->m_EconGloves().SetAttributeValueByName("set item texture prefab", 0.0f);
-	pawn->m_EconGloves().SetAttributeValueByName("set item texture seed", 0.0f);
-	pawn->m_EconGloves().SetAttributeValueByName("set item texture wear", 0.8f);
-
-	pawn->m_EconGloves().m_bInitialized() = true;
-	pawn->m_bNeedToReApplyGloves() = true;*/
-
-	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
-	if (weapon != nullptr) {
-		if (!ShouldUpdateSkin(pawn, viewModel, weapon))
-			return;
-
-		SetAndUpdateSkin(viewModel, weapon);
-	}
-
-	skins::prevWeapon = weapon;
+	ApplySkins(pawn, wepServices, viewModel, rdx);
+	ApplyGloves(pawn, viewModel);
 }

@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "sdk/CUtl/CUtlMap.h"
 #include "sdk/econ/CEconItemSetDefinition.h"
+#include "sdk/econ/CCStrike15ItemDefinition.h"
 #include "TextureCache.h"
 #include "SkinPreference.h"
 
@@ -18,4 +19,4 @@ SkinPreference* CreateAndActivateNewPreference();
 bool LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets);
 bool LoadWeaponTextureThumbnails();
 bool LoadUserSkinPreferences();
-void ChangeWeaponForSkinPreference(SkinPreference* pref, int newWeaponID);
+void ChangeWeaponForSkinPreference(SkinPreference* pref, int oldPrefID, CCStrike15ItemDefinition* newItemDef);

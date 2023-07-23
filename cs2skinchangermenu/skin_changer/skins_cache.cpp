@@ -1,6 +1,11 @@
 #include "pch.h"
 #include "skins_cache.h"
+#include "skins.h"
+#include "cache.h"
 #include "netvars/fnvhash.h"
+#include "gui/components/skin_changer_menu/helpers/skins_helper_funcs.h"
+
+#include <format>
 
 namespace skins_cache {
     std::unordered_map<uint32_t, std::vector<uint32_t>> paintkitsForWeapons = {};
@@ -13,6 +18,7 @@ namespace skins_cache {
     std::unordered_map<uint32_t, SkinPreference*> activeLoadout = {};
 }
 
+// NB! LOAD WEAPON TEXTURES FIRST THIS NEEDS THEM
 // Map out all released paintkits for each weapon
 bool LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets) {
     for (const auto& iter : itemSets) {
@@ -21,10 +27,24 @@ bool LoadPaintkitsForWeapons(CUtlMap<char*, CEconItemSetDefinition> itemSets) {
             item_list_entry_t weaponKit = set.items[i];
             if (weaponKit.m_nPaintKit == 0 || weaponKit.m_nPaintKit == 0xFFFF) // invalid paintkit
                 continue;
-            if (weaponKit.m_nItemDef > 768)
+            if (!ShouldIncludeWeaponForSkin_ID(weaponKit.m_nItemDef))
                 continue;
 
             skins_cache::paintkitsForWeapons[weaponKit.m_nItemDef].push_back(weaponKit.m_nPaintKit);
+        }
+    }
+
+    // now we have to MANUALLY add all valid paint kits for gloves
+    for (const auto& iter : cache::weaponDefs) {
+        CCStrike15ItemDefinition* itemDef = iter.m_value;
+        if (!strstr(itemDef->GetSubcategory(), "gloves"))
+            continue;
+
+        for (const auto& paintkitIter : cache::paintKits) {
+            CPaintKit* paintKit = paintkitIter.m_value;
+            std::string formatted = std::format("{}_{}_light", itemDef->GetSubcategory(), paintKit->paintKitName);
+            if(skins_cache::weaponSkins.find(fnv::Hash(formatted.c_str())) != skins_cache::weaponSkins.end())
+                skins_cache::paintkitsForWeapons[itemDef->m_iItemDefinitionIndex].push_back(paintKit->id);
         }
     }
 
@@ -115,15 +135,18 @@ SkinPreference* CreateAndActivateNewPreference() {
     return &skins_cache::loadoutAllPresets.back();
 }
 
-void ChangeWeaponForSkinPreference(SkinPreference* pref, int newWeaponID) {
-    skins_cache::activeLoadout.erase(pref->weaponID);
+void ChangeWeaponForSkinPreference(SkinPreference* pref, int oldPreferenceID, CCStrike15ItemDefinition* newItemDef) {
+    skins_cache::activeLoadout.erase(oldPreferenceID);
 
     // reset paintkit
     pref->paintKitID = -1;
-    pref->weaponID = newWeaponID;
+    pref->weaponID = newItemDef->m_iItemDefinitionIndex;
 
-    // enable it for the new weapon
-    skins_cache::activeLoadout[pref->weaponID] = pref;
+    // enable new preference
+    if(strstr(newItemDef->GetSubcategory(), "gloves"))
+        skins_cache::activeLoadout[skins::ID_GLOVE_PREFERENCE] = pref;
+    else
+        skins_cache::activeLoadout[pref->weaponID] = pref;
 }
 
 // Load all user's preset skins from file(server) to memory.

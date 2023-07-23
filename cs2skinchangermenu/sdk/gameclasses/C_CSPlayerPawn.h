@@ -15,6 +15,8 @@ public:
 	NETVAR(bool, m_bNeedToReApplyGloves, "client.dll!C_CSPlayerPawn->m_bNeedToReApplyGloves");
 	NETVAR(C_EconItemView, m_EconGloves, "client.dll!C_CSPlayerPawn->m_EconGloves");
 
+	NETVAR(uint8_t, m_iTeamNum, "client.dll!C_BaseEntity->m_iTeamNum");
+
 	/*void SetSpotted() {
 		EntitySpottedState_t& spottedState = pEntitySpottedState();
 		//if (spottedState == nullptr)
