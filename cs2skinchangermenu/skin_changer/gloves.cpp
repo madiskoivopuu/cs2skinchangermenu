@@ -55,7 +55,10 @@ void ForceGlovesUpdate(C_CSGOViewModel* viewModel) {
 	*reinterpret_cast<int*>(dataLoc + 0xc) -= 1;
 }
 // weird shit to make the gloves update properly
+std::atomic_bool threadRunning;
 void forceAsyncUpdate(SkinPreference pref, C_CSPlayerPawn* pawn, C_CSGOViewModel* viewModel) {
+	threadRunning = true;
+
 	for (int i = 0; i < 10; i++) {
 		// we should probably try checking if memory addresses have been allocated...
 		pawn->m_EconGloves().m_iItemDefinitionIndex() = pref.weaponID; // this will be the gloves id
@@ -68,6 +71,8 @@ void forceAsyncUpdate(SkinPreference pref, C_CSPlayerPawn* pawn, C_CSGOViewModel
 		ForceGlovesUpdate(viewModel);
 		Sleep(1);
 	}
+
+	threadRunning = false;
 }
 
 void ApplyGloves(C_CSPlayerPawn* pawn, C_CSGOViewModel* viewModel) {
@@ -77,7 +82,7 @@ void ApplyGloves(C_CSPlayerPawn* pawn, C_CSGOViewModel* viewModel) {
 		ForceGlovesUpdate(viewModel);
 	}*/
 
-	if (ShouldUpdateGloves(pawn)) { //skins_cache::activeLoadout.find(skins::ID_GLOVE_PREFERENCE) != skins_cache::activeLoadout.end()) {
+	if (ShouldUpdateGloves(pawn) && !threadRunning) { //skins_cache::activeLoadout.find(skins::ID_GLOVE_PREFERENCE) != skins_cache::activeLoadout.end()) {
 		SkinPreference pref = *skins_cache::activeLoadout[skins::ID_GLOVE_PREFERENCE];
 
 		std::thread t1(forceAsyncUpdate, pref, pawn, viewModel);
