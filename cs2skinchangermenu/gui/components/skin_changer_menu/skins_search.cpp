@@ -55,7 +55,9 @@ void DrawSkinsSearch() {
 			for (uint32_t id : paintkitIDs) {
 				if (id <= 1)
 					continue;
+
 				prefCopy.paintKitID = id;
+				prefCopy.wearValue = 0.0f;
 
 				std::optional<CPaintKit*> paintKit = cache::paintKits.FindByKey(id);
 				if (!paintKit.has_value())

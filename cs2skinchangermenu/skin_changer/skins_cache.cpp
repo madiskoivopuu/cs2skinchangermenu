@@ -117,7 +117,10 @@ bool LoadWeaponTextureThumbnails() {
             if (entry.filename.size() <= suffix.size() || entry.filename.compare(entry.filename.size() - suffix.size(), suffix.size(), suffix) != 0)
                 continue;
 
-            std::string cacheKey = entry.filename.substr(0, entry.filename.size() - suffix.size());
+            std::string cacheKey = std::format("{}/{}", 
+                key.substr(strlen("panorama/images/")),
+                entry.filename.substr(0, entry.filename.size() - suffix.size())
+            );
             TextureCache cache = { entry };
             skins_cache::weaponSkins[fnv::Hash(cacheKey.c_str())] = cache;
         }

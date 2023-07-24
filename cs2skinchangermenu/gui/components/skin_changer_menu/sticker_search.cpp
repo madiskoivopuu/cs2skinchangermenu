@@ -59,6 +59,9 @@ void DrawStickerSearch() {
 				if (strlen(stateSkinsOverviewMenu.searchString) > 0 && !StrStrIA(stickerKitTranslatedName.c_str(), stateSkinsOverviewMenu.searchString))
 					continue;
 
+				if (!IsStickerKit(stickerKit))
+					continue;
+
 				// display sticker as button
 
 				TextureCache& stickerTexture = skins_cache::weaponSkins[fnv::Hash(GetStickerKitTextureName(stickerKit))];

@@ -45,32 +45,39 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 	// IMPORTANT: mesh group check only if we have the paint kit definition
 	SkinPreference skinPref = *skins_cache::activeLoadout.at(itemDefIndex);
 	std::optional<CPaintKit*> paintKitDef = cache::paintKits.FindByKey(skinPref.paintKitID);
-	if (paintKitDef.has_value() 
-		&& fn::CPaintKit__IsUsingLegacyModel(paintKitDef.value()->paintKitName) && viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain() == 1) {
+	if (paintKitDef.has_value()) {
+		bool usingLegacyModel = fn::CPaintKit__IsUsingLegacyModel(paintKitDef.value()->paintKitName);
 		// update mesh group for viewmodel and weapon
-		fn::CGameSceneNode__SetMeshGroupMask(viewModel->m_pGameSceneNode(), 2);
-		fn::CGameSceneNode__SetMeshGroupMask(weapon->m_pGameSceneNode(), 2);
+		int meshGroup = 1 + static_cast<int>(usingLegacyModel);
+
+		bool bWasMeshGroupCorrect = viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup;
+
+		fn::CGameSceneNode__SetMeshGroupMask(viewModel->m_pGameSceneNode(), meshGroup);
+		fn::CGameSceneNode__SetMeshGroupMask(weapon->m_pGameSceneNode(), meshGroup);
 		// force update
-		return true;
+		if(!bWasMeshGroupCorrect)
+			return true;
 	}
 
 	// check if weapon already has the same skin or float
-	CAttributeList& attrs = weapon->m_AttributeManager().m_Item().m_AttributeList();
-	for (int i = 0; i < attrs.m_Attributes().Count(); i++) {
-		CEconItemAttribute attr = attrs.m_Attributes().Element(i);
-		// skin
-		if (attr.m_iAttributeDefinitionIndex() == 6 && attr.m_flValue() != static_cast<float>(skinPref.paintKitID))
-			return true;
-		// pattern id
-		if (attr.m_iAttributeDefinitionIndex() == 7 && attr.m_flValue() != static_cast<float>(skinPref.seed))
-			return true;
-		// float
-		if (attr.m_iAttributeDefinitionIndex() == 8 && attr.m_flValue() != skinPref.wearValue)
-			return true;
-		// kill eater aka stattrak counter
-		if (skinPref.useStattrak && attr.m_iAttributeDefinitionIndex() == 80 && attr.m_flValue() != static_cast<float>(skinPref.stattrakKills))
-			return true;
-	}
+	CAttributeList& attrList = weapon->m_AttributeManager().m_Item().m_AttributeList();
+	CEconItemAttribute* paintAttr = attrList.FindAttribute(const_cast<char*>("set item texture prefab"));
+	CEconItemAttribute* seedAttr = attrList.FindAttribute(const_cast<char*>("set item texture seed"));
+	CEconItemAttribute* wearAttr = attrList.FindAttribute(const_cast<char*>("set item texture wear"));
+	CEconItemAttribute* statTrakKillsAttr = attrList.FindAttribute(const_cast<char*>("kill eater"));
+
+	// skin
+	if (paintAttr && paintAttr->m_flValue() != static_cast<float>(skinPref.paintKitID))
+		return true;
+	// pattern id
+	if (seedAttr && seedAttr->m_flValue() != static_cast<float>(skinPref.seed))
+		return true;
+	// float
+	if (wearAttr && wearAttr->m_flValue() != skinPref.wearValue)
+		return true;
+	// kill eater aka stattrak counter
+	if (statTrakKillsAttr && statTrakKillsAttr->m_flValue() != static_cast<float>(skinPref.stattrakKills))
+		return true;
 
 	// check for stattrak add or removal
 	if (skinPref.useStattrak && weapon->m_hStattrakEntity().IsInvalid())
@@ -180,6 +187,7 @@ void ApplySkins(C_CSPlayerPawn* pawn, CPlayer_WeaponServices* wepServices, C_CSG
 
 	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
 	if (weapon != nullptr) {
+		std::cout << weapon << std::endl;
 		if (!ShouldUpdateSkin(pawn, viewModel, weapon))
 			return;
 

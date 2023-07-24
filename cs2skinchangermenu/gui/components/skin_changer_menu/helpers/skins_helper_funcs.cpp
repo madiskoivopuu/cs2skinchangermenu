@@ -45,7 +45,8 @@ std::string CreateWeaponDisplayName(SkinPreference pref) {
 }
 
 char* GetStickerKitTextureName(CStickerKit* stickerKit) {
-	char* actualStickerTextureName = strrchr(stickerKit->stickerKitVpkFile, '/') + 1;
+	// we have to use the full vpk name because we might get sticker kit texture collisions otherwise
+	char* actualStickerTextureName = stickerKit->stickerKitVpkFile; //strrchr(stickerKit->stickerKitVpkFile, '/') + 1;
 	return actualStickerTextureName;
 }
 
@@ -55,6 +56,11 @@ bool ShouldIncludeWeaponForSkin_ID(int itemDefIndex) {
 		return false;
 
 	return ShouldIncludeWeaponForSkin(itemDefOpt.value()->GetMainCategory(), itemDefOpt.value()->GetSubcategory());
+}
+
+// Check to see if a sticker kit is a sticker, valve also holds patches in there
+bool IsStickerKit(CStickerKit* stickerKit) {
+	return !strstr(stickerKit->stickerKitVpkFile, "patch");
 }
 
 bool ShouldIncludeWeaponForSkin(const char* weaponCategoryName, const char* weaponSubcategoryName) {

@@ -9,6 +9,8 @@ bool ShouldIncludeWeaponForSkin_ID(int itemDefIndex);
 
 bool ShouldIncludeWeaponForSkin(const char* weaponCategoryName, const char* subcategoryName);
 
+bool IsStickerKit(CStickerKit* stickerKit);
+
 // Gets the right wear image for the specified wear value
 const char* ImageForFloat(float wear);
 
