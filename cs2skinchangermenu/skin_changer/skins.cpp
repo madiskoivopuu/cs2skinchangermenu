@@ -26,6 +26,7 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 	if (skins_cache::activeLoadout.find(itemDefIndex) == skins_cache::activeLoadout.end()) // skin preference not set
 		return false;
 
+	SkinPreference skinPref = *skins_cache::activeLoadout.at(itemDefIndex);
 	// if the weapon doesn't have vdata set then we do not want to update, as some of the following functions need vdata
 	if (weapon->m_pWeaponVData() == nullptr)
 		return false;
@@ -35,7 +36,14 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 		return false;
 
 	// check if weapon is owned by someone else
-	if (weapon->m_hOwnerEntity().GetEnt() != localPawn)
+	if (!skinPref.overridePickedUpWeaponSkin && weapon->m_hOwnerEntity().GetEnt() != localPawn)
+		return false;
+
+	// check if weapon is enabled for our specific team
+	if (localPawn->m_iTeamNum() == TEAM_CT && !skinPref.enabledCT)
+		return false;
+
+	if (localPawn->m_iTeamNum() == TEAM_T && !skinPref.enabledT)
 		return false;
 
 	// check if there are no attributes even though we have a skin set
@@ -43,20 +51,22 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 		return true;
 
 	// IMPORTANT: mesh group check only if we have the paint kit definition
-	SkinPreference skinPref = *skins_cache::activeLoadout.at(itemDefIndex);
 	std::optional<CPaintKit*> paintKitDef = cache::paintKits.FindByKey(skinPref.paintKitID);
-	if (paintKitDef.has_value()) {
-		bool usingLegacyModel = fn::CPaintKit__IsUsingLegacyModel(paintKitDef.value()->paintKitName);
-		// update mesh group for viewmodel and weapon
-		int meshGroup = 1 + static_cast<int>(usingLegacyModel);
+	bool usingLegacyModel = false;
+	if (paintKitDef.has_value())
+		usingLegacyModel = fn::CPaintKit__IsUsingLegacyModel(paintKitDef.value()->paintKitName);
+	// update mesh group for viewmodel and weapon
+	int meshGroup = 1 + static_cast<int>(usingLegacyModel);
 
-		bool bWasMeshGroupCorrect = viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup;
-
+	bool bWasMeshGroupCorrect = viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup && weapon->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup;
+	// force update
+	if (!bWasMeshGroupCorrect) {
 		fn::CGameSceneNode__SetMeshGroupMask(viewModel->m_pGameSceneNode(), meshGroup);
+		viewModel->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = meshGroup;
 		fn::CGameSceneNode__SetMeshGroupMask(weapon->m_pGameSceneNode(), meshGroup);
-		// force update
-		if(!bWasMeshGroupCorrect)
-			return true;
+		weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = meshGroup;
+
+		return true;
 	}
 
 	// check if weapon already has the same skin or float
@@ -187,7 +197,6 @@ void ApplySkins(C_CSPlayerPawn* pawn, CPlayer_WeaponServices* wepServices, C_CSG
 
 	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
 	if (weapon != nullptr) {
-		std::cout << weapon << std::endl;
 		if (!ShouldUpdateSkin(pawn, viewModel, weapon))
 			return;
 
