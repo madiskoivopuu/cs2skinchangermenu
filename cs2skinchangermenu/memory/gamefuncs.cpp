@@ -17,6 +17,7 @@ namespace fn {
 	fGetNextSceneEventIDOffset GetNextSceneEventIDOffset = nullptr;
 	fCGameSceneNode__SetMeshGroupMask CGameSceneNode__SetMeshGroupMask = nullptr;
 	fCPaintKit__IsUsingLegacyModel CPaintKit__IsUsingLegacyModel = nullptr;
+	fCRenderGameSystem__GetNthViewMatrix CRenderGameSystem__GetNthViewMatrix = nullptr;
 }
 
 void InitNextSceneIDOffset() {
@@ -48,23 +49,20 @@ void InitSkinFunctions() {
 	fn::RegenerateAllWeaponSkins = (fRegenerateAllWeaponSkins)funcptr;
 
 	uint8_t* relCallPtr = reinterpret_cast<uint8_t*>(ScanPatternInModule("client.dll", PATTERN_REGENWEAPONSKIN_PTR, MASK_REGENWEAPONSKIN_PTR));
-	if (!relCallPtr)
-		return;
+	if (relCallPtr) {
+		// set up allowskinregen func by it's relative call addy
+		int32_t offsetFromInstruction = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_ALLOWSKINREGEN);
+		fn::AllowSkinRegenForWeapon = reinterpret_cast<fAllowSkinRegenForWeapon>(relCallPtr + OFFSETEND_ALLOWSKINREGEN + offsetFromInstruction);
 
-	// set up allowskinregen func by it's relative call addy
-	int32_t offsetFromInstruction = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_ALLOWSKINREGEN);
-	fn::AllowSkinRegenForWeapon = reinterpret_cast<fAllowSkinRegenForWeapon>(relCallPtr + OFFSETEND_ALLOWSKINREGEN + offsetFromInstruction);
-
-	// set up regenweaponskin func
-	int32_t offsetFromInstructionSigned = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_REGENWEAPONSKIN);
-	fn::RegenerateWeaponSkin = reinterpret_cast<fRegenerateWeaponSkin>(relCallPtr + OFFSETEND_REGENWEAPONSKIN + offsetFromInstructionSigned);
+		// set up regenweaponskin func
+		int32_t offsetFromInstructionSigned = *reinterpret_cast<int32_t*>(relCallPtr + OFFSETSTART_REGENWEAPONSKIN);
+		fn::RegenerateWeaponSkin = reinterpret_cast<fRegenerateWeaponSkin>(relCallPtr + OFFSETEND_REGENWEAPONSKIN + offsetFromInstructionSigned);
+	}
 
 	// set up is using legacy model stuff
 	void* funcptr2 = ScanPatternInModule("client.dll", PATTERN_ISUSINGLEGACYMODEL_PTR, MASK_ISUSINGLEGACYMODEL_PTR);
-	if (!funcptr2)
-		return;
-
-	fn::CPaintKit__IsUsingLegacyModel = reinterpret_cast<fCPaintKit__IsUsingLegacyModel>(funcptr2);
+	if (funcptr2)
+		fn::CPaintKit__IsUsingLegacyModel = reinterpret_cast<fCPaintKit__IsUsingLegacyModel>(funcptr2);
 }
 
 void InitAttribFunctions() {
@@ -83,21 +81,12 @@ void InitAttribFunctions() {
 
 void InitSkinAttachmentFunctions() {
 	void* funcptr = ScanPatternInModule("client.dll", PATTERN_SPAWNSETSTATTRAK_PTR, MASK_SPAWNSETSTATTRAK_PTR);
-	if (!funcptr)
-		return;
-
 	fn::SpawnAndSetStattrakEnt = static_cast<fSpawnAndSetStattrakEnt>(funcptr);
 
 	funcptr = ScanPatternInModule("client.dll", PATTERN_SPAWNSETNAMETAG_PTR, MASK_SPAWNSETNAMETAG_PTR);
-	if (!funcptr)
-		return;
-
 	fn::SpawnAndSetNametagEnt = static_cast<fSpawnAndSetNametagEnt>(funcptr);
 
 	funcptr = ScanPatternInModule("client.dll", PATTERN_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR, MASK_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR);
-	if (!funcptr)
-		return;
-
 	fn::UpdateViewmodelAttachments = static_cast<fUpdateViewmodelAttachments>(funcptr);
 }
 
@@ -109,6 +98,12 @@ void InitSetMeshGroupMask() {
 	fn::CGameSceneNode__SetMeshGroupMask = reinterpret_cast<fCGameSceneNode__SetMeshGroupMask>(funcptr);
 }
 
+void InitViewMatrixGetter() {
+	void* funcptr = ScanPatternInModule("client.dll", PATTERN_GETNTHVIEWMATRIX_PTR, MASK_GETNTHVIEWMATRIX_PTR);
+
+	fn::CRenderGameSystem__GetNthViewMatrix = static_cast<fCRenderGameSystem__GetNthViewMatrix>(funcptr);
+}
+
 bool InitializeFunctions() {
 	InitGetCEconItemSystem();
 	InitAttribFunctions();
@@ -117,8 +112,9 @@ bool InitializeFunctions() {
 	InitSkinAttachmentFunctions();
 	InitNextSceneIDOffset();
 	InitSetMeshGroupMask();
+	InitViewMatrixGetter();
 
 	return fn::CSource2Client__GetCCStrike15ItemSystem && fn::GetCSWeaponDataFromItem && fn::RegenerateWeaponSkin && fn::AllowSkinRegenForWeapon && fn::CEconItemView__SetAttributeValueByName
 		&& fn::UpdateViewmodelAttachments && fn::SpawnAndSetStattrakEnt && fn::CEconItemSchema__GetAttributeDefinitionByName && fn::RegenerateAllWeaponSkins && fn::GetNextSceneEventIDOffset
-		&& fn::CGameSceneNode__SetMeshGroupMask && fn::CPaintKit__IsUsingLegacyModel;
+		&& fn::CGameSceneNode__SetMeshGroupMask && fn::CPaintKit__IsUsingLegacyModel && fn::CRenderGameSystem__GetNthViewMatrix;
 }

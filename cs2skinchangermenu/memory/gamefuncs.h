@@ -20,6 +20,7 @@ using fCEconItemSchema__GetAttributeDefinitionByName = CEconItemAttributeDefinit
 using fGetNextSceneEventIDOffset = int64_t (__fastcall*)(void*, void*, int, bool);
 using fCGameSceneNode__SetMeshGroupMask = void (__fastcall*)(void*, uint64_t);
 using fCPaintKit__IsUsingLegacyModel = bool (__fastcall*)(const char*);
+using fCRenderGameSystem__GetNthViewMatrix = float* (__fastcall*)(void*, int); // argument 1 can be empty as it is not used
 
 namespace fn {
 	extern fGetCCStrike15ItemSystem CSource2Client__GetCCStrike15ItemSystem;
@@ -35,6 +36,7 @@ namespace fn {
 	extern fGetNextSceneEventIDOffset GetNextSceneEventIDOffset;
 	extern fCGameSceneNode__SetMeshGroupMask CGameSceneNode__SetMeshGroupMask;
 	extern fCPaintKit__IsUsingLegacyModel CPaintKit__IsUsingLegacyModel;
+	extern fCRenderGameSystem__GetNthViewMatrix CRenderGameSystem__GetNthViewMatrix;
 }
 
 bool InitializeFunctions();

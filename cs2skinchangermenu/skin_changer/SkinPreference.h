@@ -14,7 +14,7 @@ public:
 	int weaponID = 1;
 
 	int paintKitID = -1;
-	int seed = -1;
+	int seed = 0;
 	float wearValue = 0.0f;
 
 	bool useStattrak = false;

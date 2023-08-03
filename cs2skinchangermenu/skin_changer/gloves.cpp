@@ -69,7 +69,7 @@ void forceAsyncUpdate(SkinPreference pref, C_CSPlayerPawn* pawn, C_CSGOViewModel
 		pawn->m_EconGloves().m_bInitialized() = true;
 		pawn->m_bNeedToReApplyGloves() = true;
 		ForceGlovesUpdate(viewModel);
-		Sleep(1);
+		Sleep(2);
 	}
 
 	gloveApplyThreadRunning = false;
@@ -77,7 +77,7 @@ void forceAsyncUpdate(SkinPreference pref, C_CSPlayerPawn* pawn, C_CSGOViewModel
 
 void ApplyGloves(C_CSPlayerPawn* pawn, C_CSGOViewModel* viewModel) {
 
-	if (ShouldUpdateGloves(pawn) && !gloveApplyThreadRunning) { //skins_cache::activeLoadout.find(skins::ID_GLOVE_PREFERENCE) != skins_cache::activeLoadout.end()) {
+	if (!gloveApplyThreadRunning && ShouldUpdateGloves(pawn)) { //skins_cache::activeLoadout.find(skins::ID_GLOVE_PREFERENCE) != skins_cache::activeLoadout.end()) {
 		SkinPreference pref = *skins_cache::activeLoadout[skins::ID_GLOVE_PREFERENCE];
 
 		std::thread t1(forceAsyncUpdate, pref, pawn, viewModel);

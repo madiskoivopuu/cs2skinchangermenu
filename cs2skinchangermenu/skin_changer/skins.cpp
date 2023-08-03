@@ -58,13 +58,13 @@ bool ShouldUpdateSkin(C_CSPlayerPawn* localPawn, C_CSGOViewModel* viewModel, C_W
 	// update mesh group for viewmodel and weapon
 	int meshGroup = 1 + static_cast<int>(usingLegacyModel);
 
-	bool bWasMeshGroupCorrect = viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup && weapon->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup;
+	bool bWasMeshGroupCorrect = viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup;// && weapon->m_pGameSceneNode()->m_iMeshGroupMaskMain() == meshGroup;
 	// force update
 	if (!bWasMeshGroupCorrect) {
 		fn::CGameSceneNode__SetMeshGroupMask(viewModel->m_pGameSceneNode(), meshGroup);
-		viewModel->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = meshGroup;
+		//viewModel->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = meshGroup;
 		fn::CGameSceneNode__SetMeshGroupMask(weapon->m_pGameSceneNode(), meshGroup);
-		weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = meshGroup;
+		//weapon->m_pGameSceneNode()->m_skeletonInstance().m_modelState().m_MeshGroupMask() = meshGroup;
 
 		return true;
 	}
@@ -130,7 +130,6 @@ void SetStattrak(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, SkinPrefere
 	if (!pref->useStattrak)
 		return weapon->m_hStattrakEntity().Set(-1);
 
-
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater"), static_cast<float>(pref->stattrakKills));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("kill eater score type"), 0.0f);
 
@@ -170,9 +169,15 @@ void SetStickers(C_WeaponCSBase* weapon, SkinPreference* pref) {
 }
 
 // Adds all necessary attributes etc to the weapon & forcefully updates its skin
-void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon) {
+void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, bool useInitializationPreference) {
 	C_EconItemView& weaponEconItem = weapon->m_AttributeManager().m_Item();
-	SkinPreference* pref = skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
+	SkinPreference initPref = SkinPreference{ weaponEconItem.m_iItemDefinitionIndex() };
+
+	SkinPreference* pref = nullptr;
+	if (!useInitializationPreference)
+		pref = skins_cache::activeLoadout.at(weaponEconItem.m_iItemDefinitionIndex());
+	else
+		pref = &initPref;
 
 	// add stattrak, nametag and stickers to weapon OR remove them
 	SetStattrak(viewModel, weapon, pref);
@@ -200,7 +205,10 @@ void ApplySkins(C_CSPlayerPawn* pawn, CPlayer_WeaponServices* wepServices, C_CSG
 		if (!ShouldUpdateSkin(pawn, viewModel, weapon))
 			return;
 
-		SetAndUpdateSkin(viewModel, weapon);
+		std::cout << weapon << std::endl;
+		//SetAndUpdateSkin(viewModel, weapon, true);
+		//SetAndUpdateSkin(viewModel, weapon, true);
+		SetAndUpdateSkin(viewModel, weapon, false);
 	}
 }
 
@@ -225,6 +233,7 @@ void ApplySkinsCallback(void* rdx) {
 	if (!viewModel)
 		return;
 
+	std::cout << pawn << std::endl;
 	ApplySkins(pawn, wepServices, viewModel, rdx);
 	ApplyGloves(pawn, viewModel);
 }

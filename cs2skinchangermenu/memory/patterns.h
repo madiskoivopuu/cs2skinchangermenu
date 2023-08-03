@@ -20,6 +20,27 @@ constexpr auto MASK_ENTSYS_PTRPTR1 = "xxx????xxxxx";
 constexpr auto OFFSETSTART_ENTSYS_PTRPTR1 = 3;
 constexpr auto OFFSETEND_ENTSYS_PTRPTR1 = 7;
 
+// HOOKED
+// random function which sets some m_MeshGroupMask copy
+// found by string and search for func: Path_SetCount failed, depth already ==
+// found by string and search for func: Path_AddToTail failed, depth already == 
+// the actual function should be one of the last ones, it has a big switch(case) body, should be after a label
+constexpr auto PATTERN_MESHGROUPMASKCOPIER_PTR = "\x48\x8b\xc1\x4c\x8d\x15";
+constexpr auto MASK_MESHGROUPMASKCOPIER_PTR = "xxxxxx";
+
+// HOOKED
+// C_CSPlayerPawn::CreateMove(CUserCmd*, CUserCmd*) (potentially)
+// found by: looking inside CClientInput virtual function, where there's a string "cl: %d -------------------"
+// player pawn call is above a lot of if checks with |= assignments
+constexpr auto PATTERN_PLAYERPAWNCREATEMOVE_PTR = "\x48\x89\x5c\x24\x00\x57\x48\x83\xec\x00\x8b\x42\x00\x48\x8b\xda\x48\xc1\xe8";
+constexpr auto MASK_PLAYERPAWNCREATEMOVE_PTR = "xxxx?xxxx?xx?xxxxxx";
+
+// CRenderGameSystem::GetNthViewMatrix(CRenderGameSystem*, int);
+// found by: class informer for CRenderGameSystem, last function in the vtable with the following content 
+// return (char *)&viewMatrix + 64 * (__int64)a2;
+constexpr auto PATTERN_GETNTHVIEWMATRIX_PTR = "\x48\x63\xc2\x48\x8d\x0d\x00\x00\x00\x00\x48\xc1\xe0\x06\x48\x03\xC1";
+constexpr auto MASK_GETNTHVIEWMATRIX_PTR = "xxxxxx????xxxxxxx";
+
 // !! Weapons do have their vdata pointer somewhere close to offset 0x360
 // GetCSWeaponDataFromItem
 // found by string:   FX_FireBullets: GetCSWeaponDataFromItem failed for weapon %s\n
@@ -54,25 +75,10 @@ constexpr auto MASK_GETNEXTSCENEEVENTOFFSET_PTR_OFFSET = "x????xxxxxx";
 constexpr auto OFFSETSTART_GETNEXTSCENEEVENTOFFSET = 1;
 constexpr auto OFFSETEND_GETNEXTSCENEEVENTOFFSET = 5;
 
-// HOOKED
-// random function which sets some m_MeshGroupMask copy
-// found by string and search for func: Path_SetCount failed, depth already ==
-// found by string and search for func: Path_AddToTail failed, depth already == 
-// the actual function should be one of the last ones, it has a big switch(case) body, should be after a label
-constexpr auto PATTERN_MESHGROUPMASKCOPIER_PTR = "\x48\x8b\xc1\x4c\x8d\x15";
-constexpr auto MASK_MESHGROUPMASKCOPIER_PTR = "xxxxxx";
-
-// HOOKED
-// C_CSPlayerPawn::CreateMove(CUserCmd*, CUserCmd*) (potentially)
-// found by: looking inside CClientInput virtual function, where there's a string "cl: %d -------------------"
-// player pawn call is above a lot of if checks with |= assignments
-constexpr auto PATTERN_PLAYERPAWNCREATEMOVE_PTR = "\x48\x89\x5c\x24\x00\x57\x48\x83\xec\x00\x8b\x42\x00\x48\x8b\xda\x48\xc1\xe8";
-constexpr auto MASK_PLAYERPAWNCREATEMOVE_PTR = "xxxx?xxxx?xx?xxxxxx";
-
 // UpdateViewmodelStattrakAttachments(C_CSGOViewModel*, C_Weapon*)
 // found by string in client.dll: CEntitySpawner<class C_ViewmodelAttachmentModel>::Spawn
 // found by: cheat engine looking what accesses the address where m_hStattrakAttachment is
-constexpr auto PATTERN_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR = "\x48\x89\x5c\x24\x00\x55\x56\x57\x41\x55\x41\x56\x48\x8d\x6c\x24 ";
+constexpr auto PATTERN_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR = "\x48\x89\x5c\x24\x00\x55\x56\x57\x41\x55\x41\x56\x48\x8d\x6c\x24";
 constexpr auto MASK_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR = "xxxx?xxxxxxxxxxx";
 
 // SpawnAndSetStattrakAttachment(m_hStattrakAttachment*)
@@ -85,8 +91,8 @@ constexpr auto MASK_SPAWNSETSTATTRAK_PTR = "xxxxxxxxx";
 // SpawnAndSetNametagAttachment(m_hNametagAttachment*)
 // found by string: Nametag: %s
 // found by string and xrefing: CEntitySpawner<class C_WorldModelNametag>::Spawn
-constexpr auto PATTERN_SPAWNSETNAMETAG_PTR = "\x40\x55\x41\x56\x48\x8d\xac\x24\x00\x00\x00\x00\x48\x81\xec\x00\x00\x00\x00\x8b\x51";
-constexpr auto MASK_SPAWNSETNAMETAG_PTR = "xxxxxxxx????xxx????xx";
+constexpr auto PATTERN_SPAWNSETNAMETAG_PTR = "\x40\x55\x41\x00\x48\x8d\xac\x24\x00\x00\x00\x00\x48\x81\xec\x00\x00\x00\x00\x8b\x51";
+constexpr auto MASK_SPAWNSETNAMETAG_PTR = "xxx?xxxx????xxx????xx";
 
 // ::SetAttributeValueByName(C_EconItemView*, char* name, float val)
 // found by string: set item texture prefab
