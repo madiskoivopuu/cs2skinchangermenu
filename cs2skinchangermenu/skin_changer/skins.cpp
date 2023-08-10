@@ -196,16 +196,12 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, bool u
 }
 
 void ApplySkins(C_CSPlayerPawn* pawn, CPlayer_WeaponServices* wepServices, C_CSGOViewModel* viewModel, void* rdx) {
-	void* offsetToMask = &viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain();
-	if (offsetToMask != rdx) // only do the update at a very specific time, when we are writing the result from our current viewmodel to some random place
-		return;
-
 	C_WeaponCSBase* weapon = wepServices->m_hActiveWeapon().GetEnt();
 	if (weapon != nullptr) {
 		if (!ShouldUpdateSkin(pawn, viewModel, weapon))
 			return;
 
-		std::cout << weapon << std::endl;
+		//std::cout << weapon << std::endl;
 		//SetAndUpdateSkin(viewModel, weapon, true);
 		//SetAndUpdateSkin(viewModel, weapon, true);
 		SetAndUpdateSkin(viewModel, weapon, false);
@@ -213,6 +209,7 @@ void ApplySkins(C_CSPlayerPawn* pawn, CPlayer_WeaponServices* wepServices, C_CSG
 }
 
 // called for every frame
+std::atomic_bool threadInUse;
 void ApplySkinsCallback(void* rdx) {
 	CCSPlayerController* localPlayer = *globals::ppLocalPlayer;
 	if (!localPlayer)
@@ -233,7 +230,10 @@ void ApplySkinsCallback(void* rdx) {
 	if (!viewModel)
 		return;
 
-	std::cout << pawn << std::endl;
+	void* offsetToMask = &viewModel->m_pGameSceneNode()->m_iMeshGroupMaskMain();
+	if (offsetToMask != rdx) // only do the update at a very specific time, when we are writing the result from our current viewmodel to some random place
+		return;
+
 	ApplySkins(pawn, wepServices, viewModel, rdx);
 	ApplyGloves(pawn, viewModel);
 }

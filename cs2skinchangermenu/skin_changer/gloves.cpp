@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "gloves.h"
+#include "globals.h"
 
 #include "skins_cache.h"
 #include "skins.h"
@@ -49,9 +50,9 @@ bool ShouldUpdateGloves(C_CSPlayerPawn* pawn) {
 
 void ForceGlovesUpdate(C_CSGOViewModel* viewModel) {
 	int magicNr = 4047747114;
-	int64_t offset = fn::GetNextSceneEventIDOffset(&viewModel->m_nNextSceneEventId(), &magicNr, magicNr, false);
+	int64_t offset = fn::GetNextSceneEventIDOffset(&viewModel->m_CachedViewTarget().y, &magicNr, magicNr, false);
 
-	uint8_t* dataLoc = *reinterpret_cast<uint8_t**>(&viewModel->m_nNextSceneEventId()) + offset * 0x10;
+	uint8_t* dataLoc = *reinterpret_cast<uint8_t**>(&viewModel->m_CachedViewTarget().y) + offset * 0x10;
 	*reinterpret_cast<int*>(dataLoc + 0xc) -= 1;
 }
 // weird shit to make the gloves update properly
@@ -76,7 +77,6 @@ void forceAsyncUpdate(SkinPreference pref, C_CSPlayerPawn* pawn, C_CSGOViewModel
 }
 
 void ApplyGloves(C_CSPlayerPawn* pawn, C_CSGOViewModel* viewModel) {
-
 	if (!gloveApplyThreadRunning && ShouldUpdateGloves(pawn)) { //skins_cache::activeLoadout.find(skins::ID_GLOVE_PREFERENCE) != skins_cache::activeLoadout.end()) {
 		SkinPreference pref = *skins_cache::activeLoadout[skins::ID_GLOVE_PREFERENCE];
 

@@ -124,6 +124,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);$(DXSDK_DIR)\Lib\x64\dxguid.lib;Shlwapi.lib</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,12 +147,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);$(DXSDK_DIR)\Lib\x64\dxguid.lib;Shlwapi.lib</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cache.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="gui\components\skin_changer_menu\functions.h" />
+    <ClInclude Include="sdk\Vector.h" />
     <ClInclude Include="skin_changer\gloves.h" />
     <ClInclude Include="gui\components\components.h" />
     <ClInclude Include="gui\components\skin_changer_menu\helpers\skins_helper_funcs.h" />
