@@ -9,8 +9,9 @@
 
 #define CSCHEMATYPE_GETSIZES_INDEX 3
 #define SCHEMASYSTEM_TYPE_SCOPES_OFFSET 0x190
-#define SCHEMASYSTEMTYPESCOPE_OFF1 0x450
-#define SCHEMASYSTEMTYPESCOPE_OFF2 0x2804
+#define SCHEMASYSTEMTYPESCOPE_OFF1 0x47E
+#define SCHEMASYSTEMTYPESCOPE_OFF2 0x2808
+
 
 class CSchemaClassInfo;
 class CSchemaSystemTypeScope;
@@ -272,7 +273,9 @@ private:
 class CSchemaSystemTypeScope {
 public:
     CSchemaClassInfo* FindDeclaredClass(const char* class_name) {
-        return Virtual::GetEnt<CSchemaClassInfo* (__thiscall*)(void*, const char*)>(this, 2)(this, class_name);
+        CSchemaClassInfo* class_info;
+
+        return Virtual::GetEnt<CSchemaClassInfo* (__thiscall*)(void*, CSchemaClassInfo**, const char*)>(this, 2)(this, &class_info, class_name);
     }
 
     CSchemaEnumBinding* FindDeclaredEnum(const char* name) {

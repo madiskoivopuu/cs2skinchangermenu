@@ -85,8 +85,8 @@ constexpr auto MASK_UPDATEVIEWMODELSTATTRAKATTACHMENTS_PTR = "xxxx?xxxxxxxxxxx";
 // found by string: CEntitySpawner<class C_WorldModelStattrak>::Spawn
 // found by string: weapons/models/shared/stattrak/stattrak_module.vmdl
 // preferably two of these strings in the same func
-constexpr auto PATTERN_SPAWNSETSTATTRAK_PTR = "\x4c\x8b\xdc\x55\x41\x55\x49\x8d\x6b";
-constexpr auto MASK_SPAWNSETSTATTRAK_PTR = "xxxxxxxxx";
+constexpr auto PATTERN_SPAWNSETSTATTRAK_PTR = "\x40\x55\x41\x55\x48\x8d\x6c\x24";
+constexpr auto MASK_SPAWNSETSTATTRAK_PTR = "xxxxxxxx";
 
 // SpawnAndSetNametagAttachment(m_hNametagAttachment*)
 // found by string: Nametag: %s
