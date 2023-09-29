@@ -91,7 +91,7 @@ constexpr auto MASK_SPAWNSETSTATTRAK_PTR = "xxxxxxxx";
 // SpawnAndSetNametagAttachment(m_hNametagAttachment*)
 // found by string: Nametag: %s
 // found by string and xrefing: CEntitySpawner<class C_WorldModelNametag>::Spawn
-constexpr auto PATTERN_SPAWNSETNAMETAG_PTR = "\x40\x55\x41\x00\x48\x8d\xac\x24\x00\x00\x00\x00\x48\x81\xec\x00\x00\x00\x00\x8b\x51";
+constexpr auto PATTERN_SPAWNSETNAMETAG_PTR = "\x40\x55\x41\x00\x48\x8d\xac\x24\x00\x00\x00\x00\x48\x81\xec\x00\x00\x00\x00";
 constexpr auto MASK_SPAWNSETNAMETAG_PTR = "xxx?xxxx????xxx????xx";
 
 // ::SetAttributeValueByName(C_EconItemView*, char* name, float val)

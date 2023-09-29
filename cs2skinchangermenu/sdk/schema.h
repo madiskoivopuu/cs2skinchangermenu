@@ -275,7 +275,8 @@ public:
     CSchemaClassInfo* FindDeclaredClass(const char* class_name) {
         CSchemaClassInfo* class_info;
 
-        return Virtual::GetEnt<CSchemaClassInfo* (__thiscall*)(void*, CSchemaClassInfo**, const char*)>(this, 2)(this, &class_info, class_name);
+        Virtual::GetEnt<CSchemaClassInfo* (__thiscall*)(void*, CSchemaClassInfo**, const char*)>(this, 2)(this, &class_info, class_name);
+        return class_info;
     }
 
     CSchemaEnumBinding* FindDeclaredEnum(const char* name) {

@@ -8,7 +8,7 @@
 #include <iostream>
 
 #define LIBCXX_ENABLE_INCOMPLETE_FEATURES
-//#define DUMP_NETVARS
+#define DUMP_NETVARS
 
 #ifdef DUMP_NETVARS
 #include <fstream>
