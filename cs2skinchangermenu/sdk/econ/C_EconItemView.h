@@ -22,7 +22,7 @@ public:
 	NETVAR(CAttributeList, m_NetworkedDynamicAttributes, "client.dll!C_EconItemView->m_NetworkedDynamicAttributes");
 
 public:
-	CWeaponCSBaseVData* GetCSWeaponDataFromItem();
+	CCSWeaponBaseVData* GetCSWeaponDataFromItem();
 	void SetAttributeValueByName(const char* name, float value);
 	void SetAttributeValueIntByName(const char* name, int value);
 };

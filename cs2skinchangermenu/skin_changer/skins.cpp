@@ -181,7 +181,7 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, bool u
 
 	// add stattrak, nametag and stickers to weapon OR remove them
 	SetStattrak(viewModel, weapon, pref);
-	SetNametag(weapon, pref);
+	//SetNametag(weapon, pref); // disabled for the time being
 	SetStickers(weapon, pref);
 
 	// add skin to weapon
@@ -189,10 +189,10 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, bool u
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture seed"), static_cast<float>(pref->seed));
 	weaponEconItem.SetAttributeValueByName(const_cast<char*>("set item texture wear"), pref->wearValue);
 
-	fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
-	fn::RegenerateWeaponSkin(weapon);
+	//fn::AllowSkinRegenForWeapon(weapon->m_pWeaponSecondVTable(), true); // weird issue with 1st argument being dereferenced incorrectly by the compiler when using a reference to a pointer that has been dereferenced
+	//fn::RegenerateWeaponSkin(weapon);
 	fn::RegenerateAllWeaponSkins(); // updates stickers
-	fn::UpdateViewmodelAttachments(viewModel, weapon);
+	//fn::UpdateViewmodelAttachments(viewModel, weapon);
 }
 
 void ApplySkins(C_CSPlayerPawn* pawn, CPlayer_WeaponServices* wepServices, C_CSGOViewModel* viewModel, void* rdx) {

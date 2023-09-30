@@ -2,7 +2,7 @@
 
 #include "netvars/netvars.h"
 
-class CWeaponCSBaseVData {
+class CCSWeaponBaseVData {
 public:
-	NETVAR(int32_t, m_GearSlot, "client.dll!CWeaponCSBaseVData->m_GearSlot");
+	NETVAR(int32_t, m_GearSlot, "client.dll!CCSWeaponBaseVData->m_GearSlot");
 };

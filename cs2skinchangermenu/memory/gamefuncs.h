@@ -8,7 +8,7 @@
 
 // In-game function typedefs
 using fGetCCStrike15ItemSystem = CCStrike15ItemSystem* (__fastcall*)(); // CSource2Client::
-using fGetCSWeaponDataFromItem = CWeaponCSBaseVData* (__fastcall*)(C_EconItemView*);
+using fGetCSWeaponDataFromItem = CCSWeaponBaseVData* (__fastcall*)(C_EconItemView*);
 using fRegenerateWeaponSkin = void (__fastcall*)(C_WeaponCSBase*);
 using fRegenerateAllWeaponSkins = void (__fastcall*)();
 using fAllowSkinRegenForWeapon = void (__fastcall*)(void*, bool);

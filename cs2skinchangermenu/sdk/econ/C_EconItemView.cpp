@@ -2,7 +2,7 @@
 #include "C_EconItemView.h"
 #include "memory/gamefuncs.h"
 
-CWeaponCSBaseVData* C_EconItemView::GetCSWeaponDataFromItem() {
+CCSWeaponBaseVData* C_EconItemView::GetCSWeaponDataFromItem() {
 	return fn::GetCSWeaponDataFromItem(this);
 }
 

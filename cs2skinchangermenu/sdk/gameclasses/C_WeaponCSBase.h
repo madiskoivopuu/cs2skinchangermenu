@@ -29,7 +29,7 @@ public:
 	NETVAR(int32_t, m_nFallbackStatTrak, "client.dll!C_EconEntity->m_nFallbackStatTrak");
 
 	// skin changer stuff
-	NETVAR_WITH_OFFSET(CWeaponCSBaseVData*, m_pWeaponVData, "client.dll!C_BaseEntity->m_nSubclassID", +8);
+	NETVAR_WITH_OFFSET(CCSWeaponBaseVData*, m_pWeaponVData, "client.dll!C_BaseEntity->m_nSubclassID", +8);
 	NETVAR_WITH_OFFSET(CHandle<void*>, m_hStattrakEntity, "client.dll!C_WeaponCSBase->m_iNumEmptyAttacks", +4);
 	NETVAR_WITH_OFFSET(CHandle<void*>, m_hNametagEntity, "client.dll!C_WeaponCSBase->m_iNumEmptyAttacks", +20);
 
