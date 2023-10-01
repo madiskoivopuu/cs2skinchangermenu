@@ -6694,6 +6694,7 @@ server.dll!CCSGameRules->m_bTeamIntroPeriod 17ec bool
 server.dll!CCSGameRules->m_fTeamIntroPeriodEnd 17f0 GameTime_t
 server.dll!CCSGameRules->m_bPlayedTeamIntroVO 17f4 bool
 server.dll!CCSGameRules->m_flLastPerfSampleTime 27b0 float64
+server.dll!CCSGameRules->m_bSkipNextPerfSample 27b8 bool
 server.dll!CCSGameModeRules->__m_pChainEntity 8 CNetworkVarChainer
 server.dll!CCSGameModeRules_Deathmatch->m_bFirstThink 30 bool
 server.dll!CCSGameModeRules_Deathmatch->m_bFirstThinkAfterConnected 31 bool
@@ -11149,6 +11150,7 @@ client.dll!C_CSGameRules->m_nTTeamIntroVariant eac int32
 client.dll!C_CSGameRules->m_nCTTeamIntroVariant eb0 int32
 client.dll!C_CSGameRules->m_bTeamIntroPeriod eb4 bool
 client.dll!C_CSGameRules->m_flLastPerfSampleTime 1e70 float64
+client.dll!C_CSGameRules->m_bSkipNextPerfSample 1e78 bool
 client.dll!CCSGameModeRules->__m_pChainEntity 8 CNetworkVarChainer
 client.dll!CCSGameModeRules_Deathmatch->m_bFirstThink 30 bool
 client.dll!CCSGameModeRules_Deathmatch->m_bFirstThinkAfterConnected 31 bool

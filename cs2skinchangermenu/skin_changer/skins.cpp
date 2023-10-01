@@ -145,6 +145,7 @@ void SetNametag(C_WeaponCSBase* weapon, SkinPreference* pref) {
 	if (strlen(pref->nametag) == 0) {
 		weapon->m_hNametagEntity().Set(-1);
 		memset(&weapon->m_AttributeManager().m_Item().m_szCustomName(), 0x00, sizeof(pref->nametag));
+		return;
 	}
 
 	weapon->m_hNametagEntity().Set(-1);
@@ -181,7 +182,7 @@ void SetAndUpdateSkin(C_CSGOViewModel* viewModel, C_WeaponCSBase* weapon, bool u
 
 	// add stattrak, nametag and stickers to weapon OR remove them
 	SetStattrak(viewModel, weapon, pref);
-	//SetNametag(weapon, pref); // disabled for the time being
+	SetNametag(weapon, pref); // disabled for the time being
 	SetStickers(weapon, pref);
 
 	// add skin to weapon

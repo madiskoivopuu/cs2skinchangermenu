@@ -30,8 +30,8 @@ public:
 
 	// skin changer stuff
 	NETVAR_WITH_OFFSET(CCSWeaponBaseVData*, m_pWeaponVData, "client.dll!C_BaseEntity->m_nSubclassID", +8);
-	NETVAR_WITH_OFFSET(CHandle<void*>, m_hStattrakEntity, "client.dll!C_WeaponCSBase->m_iNumEmptyAttacks", +4);
-	NETVAR_WITH_OFFSET(CHandle<void*>, m_hNametagEntity, "client.dll!C_WeaponCSBase->m_iNumEmptyAttacks", +20);
+	NETVAR_WITH_OFFSET(CHandle<void*>, m_hStattrakEntity, "client.dll!C_CSWeaponBase->m_iNumEmptyAttacks", +4);
+	NETVAR_WITH_OFFSET(CHandle<void*>, m_hNametagEntity, "client.dll!C_CSWeaponBase->m_iNumEmptyAttacks", +20);
 
 	NETVAR(CBodyComponentSkeletonInstance*, m_pGameSceneNode, "client.dll!C_BaseEntity->m_pGameSceneNode");
 	NETVAR(CBodyComponent*, m_CBodyComponent, "client.dll!C_BaseEntity->m_CBodyComponent");
